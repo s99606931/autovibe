@@ -1,218 +1,498 @@
-# Getting Started with AutoVibe
+# AutoVibe 시작 가이드
 
-> Build your AI agent ecosystem in 6 phases through PDCA conversations.
-
-## Prerequisites
-
-Before starting, ensure you have:
-
-1. **Claude Code CLI** v2.1.71 or later
-   ```bash
-   claude --version
-   # Should show: 2.1.71 or higher
-   ```
-
-2. **bkit plugin** installed in Claude Code
-   - bkit provides the `/pdca` skill required for the PDCA-driven approach
-   - See [bkit-integration.md](bkit-integration.md) for installation
-
-3. **git initialized project**
-   ```bash
-   git init your-project
-   cd your-project
-   ```
-
-4. **AutoVibe docs** copied to your project
-   ```bash
-   git clone https://github.com/{your-org}/autovibe.git /tmp/autovibe
-   mkdir -p docs/autovibe
-   cp -r /tmp/autovibe/docs/* docs/autovibe/
-   ```
+> PDCA 대화를 통해 6개 Phase로 AI 에이전트 생태계를 구축합니다.
+> 이 가이드는 Phase 0부터 Phase 5까지 단계별로 진행하는 방법을 설명합니다.
 
 ---
 
-## Step-by-Step Guide
+## 전체 흐름 개요
 
-### Step 1: Open Claude Code in your project
+```mermaid
+flowchart TD
+    PRE["🔍 사전 요구사항 확인\nClaude Code + bkit + git"]
+    PRE --> P0
+
+    subgraph BOOTSTRAP["Phase 0 — 기반 인프라 (약 10분)"]
+        P0["📁 .claude/ 디렉토리 생성\n하위 구조 초기화"]
+        P0A["📄 components.json\n빈 레지스트리 생성"]
+        P0B["📝 CLAUDE.md\nAutoVibe 섹션 추가"]
+        P0 --> P0A --> P0B
+    end
+
+    subgraph BASE["Phase 1~2 — Base 컴포넌트 (약 20분)"]
+        P1["📜 Phase 1: Base Rules 4종\nav-base-spec, av-org-protocol\nav-base-memory-first, av-util-mermaid-std"]
+        P2["🤖 Phase 2: Base Agents 8종\naudit, optimize, template, git\nrefactor, qa, sync, vibecoder"]
+        P1 --> P2
+    end
+
+    subgraph META["Phase 3~4 — 메타 & 핵심 스킬 (약 30분)"]
+        P3["🔧 Phase 3: Meta Skills 6종\nav-vibe-forge + 4 forge + portable-init"]
+        P4["⚡ Phase 4: Core Skills 10종\n/av, /av-pm, code-quality, git-commit 등"]
+        P3 --> P4
+    end
+
+    subgraph HOOKS["Phase 5 — 자동화 (약 10분)"]
+        P5["🔗 Phase 5: Hooks 5종\nsettings.json 등록"]
+    end
+
+    subgraph DOMAIN["Phase 6 — 도메인 확장 (무한)"]
+        P6["🌱 대화로 도메인 에이전트 추가\n프로젝트 맞춤형 성장"]
+    end
+
+    P0B --> P1
+    P2 --> P3
+    P4 --> P5
+    P5 --> P6
+    P6 -- "새 도메인 필요 시" --> P6
+```
+
+---
+
+## 사전 요구사항
+
+### 필수 도구 설치 확인
 
 ```bash
-cd your-project
+# 1. Claude Code 버전 확인 (v2.1.71 이상 필요)
+claude --version
+
+# 2. git 확인
+git --version
+
+# 3. 프로젝트 디렉토리 준비
+mkdir my-project && cd my-project
+git init
+```
+
+### bkit 플러그인 설치
+
+bkit은 AutoVibe의 PDCA 사이클을 구동하는 핵심 플러그인입니다.
+설치 방법은 [bkit-integration.md](bkit-integration.md)를 참조하세요.
+
+설치 확인:
+```
+# Claude Code 내에서 실행
+/bkit
+```
+
+`bkit` 메뉴가 나타나면 정상 설치된 것입니다.
+
+### AutoVibe 문서 복사
+
+```bash
+# AutoVibe 저장소 클론
+git clone https://github.com/{your-org}/autovibe.git /tmp/autovibe
+
+# 내 프로젝트에 문서 복사
+mkdir -p docs/autovibe
+cp -r /tmp/autovibe/docs/* docs/autovibe/
+```
+
+복사 후 구조:
+```
+my-project/
+├── docs/
+│   └── autovibe/
+│       ├── prd/av-ecosystem-pdca-driven.prd.md
+│       ├── plan/av-ecosystem-pdca-driven-*.md
+│       └── design/av-ecosystem-design-spec.md
+└── .git/
+```
+
+---
+
+## Phase 0: 기반 인프라 구축
+
+> **목표**: `.claude/` 디렉토리 구조와 빈 레지스트리, CLAUDE.md AutoVibe 섹션을 생성합니다.
+
+### Claude Code 실행
+
+```bash
+cd my-project
 claude
 ```
 
-### Step 2: Start Phase 0 — Bootstrap Infrastructure
-
-Say to Claude:
-```
-docs/autovibe/design/av-ecosystem-design-spec.md 를 참고해서
-bkit PDCA로 AutoVibe Phase 0 기반 인프라를 구축해줘
-```
-
-Or in English:
-```
-Please read docs/autovibe/design/av-ecosystem-design-spec.md and
-use bkit PDCA to build the AutoVibe Phase 0 bootstrap infrastructure.
-```
-
-Claude will:
-1. Run `/pdca plan av-ecosystem-p0-bootstrap`
-2. Ask you questions:
-   - "What is your project name?"
-   - "What tech stack are you using?"
-   - "What are your domain groups?"
-   - "What is your source root path?"
-3. Create the `.claude/` directory structure
-4. Initialize `components.json` registry
-5. Add AutoVibe section to `CLAUDE.md`
-
-### Step 3: Continue with Phase 1 — Base Rules
-
-After Phase 0 completes:
-```
-Phase 0 완료. Phase 1 Base Rules로 진행해줘
-```
-
-Or:
-```
-Phase 0 complete. Continue with Phase 1 Base Rules.
-```
-
-Claude creates 4 rule files:
-- `.claude/rules/av-base-spec.md`
-- `.claude/rules/av-org-protocol.md`
-- `.claude/rules/av-base-memory-first.md`
-- `.claude/rules/av-util-mermaid-std.md`
-
-### Step 4: Phase 2 — Base Agents
+### Claude에게 다음과 같이 말하세요
 
 ```
-Phase 2 Base Agents 진행해줘
+docs/autovibe/design/av-ecosystem-design-spec.md 를 읽고
+bkit PDCA로 AutoVibe Phase 0 기반 인프라를 구축해줘.
 ```
 
-8 agents created:
-- `av-base-auditor` — code quality validator
-- `av-base-optimizer` — ecosystem optimizer
-- `av-base-template` — template scaffolding
-- `av-base-git-committer` — Conventional Commits
-- `av-base-refactor-advisor` — refactoring advisor
-- `av-base-qa-reviewer` — QA reviewer
-- `av-base-sync-auditor` — CLAUDE.md sync validator
-- `av-vibe-vibecoder` — ecosystem gap detector
+### Claude가 하는 일 (내부 동작)
 
-### Step 5: Phase 3 — Meta Skills (Forge)
+```mermaid
+sequenceDiagram
+    participant U as 사용자
+    participant C as Claude
+    participant F as 파일 시스템
 
-6 forge tools created — these enable you to create MORE components:
-- `av-vibe-forge` — master orchestrator (14 subcommands)
-- `av-vibe-skill-forge` — creates new skills
-- `av-vibe-agent-forge` — creates new agents
-- `av-vibe-hook-forge` — creates hook scripts
-- `av-vibe-rule-forge` — creates rule files
-- `av-vibe-portable-init` — project initialization
+    C->>C: /pdca plan av-ecosystem-p0-bootstrap
+    C->>U: AskUserQuestion: "프로젝트 이름은?"
+    U->>C: "my-awesome-project"
+    C->>U: AskUserQuestion: "기술 스택은?"
+    U->>C: "NestJS + Next.js"
+    C->>U: AskUserQuestion: "도메인 그룹은?"
+    U->>C: "order, product, inventory"
+    C->>U: AskUserQuestion: "소스 루트 경로는?"
+    U->>C: "src"
+    C->>F: mkdir -p .claude/{skills,agents,rules,hooks,registry,agent-memory}
+    C->>F: Write .claude/registry/components.json (빈 레지스트리)
+    C->>F: Write .claude/docs/av-claude-code-spec/topics/frontmatter-spec.md
+    C->>F: Edit CLAUDE.md (AutoVibe 섹션 추가)
+    C->>U: "Phase 0 완료. Phase 1로 진행할까요?"
+```
 
-### Step 6: Phase 4 — Core Skills
+### Phase 0 완료 후 생성되는 구조
 
-10 workflow automation skills:
-- `/av` — master gateway (natural language routing)
-- `/av-pm` — PM interface (PRD → team formation)
-- `/av-base-code-quality` — lint + typecheck + build
-- `/av-base-git-commit` — git commit automation
-- `/av-base-sync` — CLAUDE.md auto-update
-- etc.
+```
+.claude/
+├── skills/           ← 스킬 파일 (SKILL.md) 저장 위치
+├── agents/           ← 에이전트 파일 (AGENT.md) 저장 위치
+├── rules/            ← 규칙 파일 (.md) 저장 위치
+├── hooks/            ← 훅 셸 스크립트 저장 위치
+├── registry/
+│   └── components.json   ← 빈 레지스트리 (곧 채워집니다)
+├── agent-memory/     ← 에이전트별 MEMORY.md 저장 위치
+└── docs/
+    └── av-claude-code-spec/topics/
+        └── frontmatter-spec.md   ← 컴포넌트 형식 명세
+```
 
-### Step 7: Phase 5 — Hooks
+---
 
-5 hook scripts registered in `.claude/settings.json`:
-- Write/Edit monitor
-- Session discovery
-- Content scanner
-- Bash guard
-- PreCompact initializer
+## Phase 1: Base Rules 생성
 
-### Verification
+> **목표**: av 생태계의 핵심 동작 규칙 4종을 생성합니다.
+> 이 규칙들은 모든 에이전트/스킬에 자동으로 적용됩니다.
 
-After all phases complete:
+### Claude에게 말하기
+
+```
+Phase 1 Base Rules 4종을 생성해줘.
+docs/autovibe/design/av-ecosystem-design-spec.md §3 을 참고해서.
+```
+
+### 생성되는 Rules
+
+```mermaid
+graph LR
+    subgraph ".claude/rules/"
+        R1["av-base-spec.md\n모든 컴포넌트 중앙 규칙\n네이밍·버전·등록 원칙"]
+        R2["av-org-protocol.md\n팀원→PL→PM 3단계 승인\n품질 게이트 G1~G5"]
+        R3["av-base-memory-first.md\n작업 시작 전 MEMORY.md 필독\n메모리 계층 관리"]
+        R4["av-util-mermaid-std.md\nMermaid 다이어그램 표준\n다크 테마, 색상 팔레트"]
+    end
+```
+
+| Rule | 역할 | 적용 범위 |
+|------|------|---------|
+| `av-base-spec` | AutoVibe 중앙 규칙 인덱스 — 네이밍, 버전, 등록 원칙 | 모든 컴포넌트 |
+| `av-org-protocol` | 팀 협업 프로토콜 — 보고체계, 승인절차, PDCA 의무 | 팀 작업 시 |
+| `av-base-memory-first` | 메모리 우선 원칙 — 작업 전 MEMORY.md 반드시 읽기 | 모든 에이전트 |
+| `av-util-mermaid-std` | Mermaid 다이어그램 표준 — 테마, 색상, 검증 방법 | 문서 작성 시 |
+
+---
+
+## Phase 2: Base Agents 생성
+
+> **목표**: 어떤 프로젝트에서나 반드시 필요한 범용 에이전트 8종을 생성합니다.
+
+### Claude에게 말하기
+
+```
+Phase 2 Base Agents 8종을 생성해줘.
+기술 스택은 {내 스택}이야. Design Spec §4 참고해서.
+```
+
+### 생성되는 Agents
+
+```mermaid
+graph TD
+    subgraph "코드 품질 계층"
+        A1["av-base-auditor\n품질·로직·메모리 검증\nLevel 1~3 감사 수행"]
+        A2["av-base-qa-reviewer\n대량 작업 후 QA 검수\nClosed-Loop 3라운드"]
+    end
+
+    subgraph "개발 지원 계층"
+        A3["av-base-optimizer\n토큰·컴포넌트·설정 최적화\n생태계 비용 절감"]
+        A4["av-base-template\n템플릿 레지스트리 관리\n드리프트 감지"]
+        A5["av-base-git-committer\nConventional Commits\n메시지 자동 생성"]
+        A6["av-base-refactor-advisor\n중복 코드 탐지·제안\n공통 모듈 추출"]
+    end
+
+    subgraph "동기화 계층"
+        A7["av-base-sync-auditor\nCLAUDE.md 정합성 검증\n불일치 항목 보고"]
+        A8["av-vibe-vibecoder\n생태계 갭 분석\n신규 컴포넌트 추천"]
+    end
+```
+
+각 에이전트와 함께 MEMORY.md가 자동 생성됩니다:
+```
+.claude/agent-memory/
+├── av-base-auditor/MEMORY.md      ← 감사 이력 학습
+├── av-base-optimizer/MEMORY.md   ← 최적화 패턴 학습
+└── ... (8개 모두)
+```
+
+---
+
+## Phase 3: Meta Skills (Forge) 생성
+
+> **목표**: av 생태계를 스스로 확장할 수 있는 생성 도구(Forge) 6종을 만듭니다.
+> 이 Phase 완료 후부터 `/av-vibe-forge` 명령어로 새 컴포넌트를 쉽게 생성할 수 있습니다.
+
+### Claude에게 말하기
+
+```
+Phase 3 Meta Skills (Forge) 6종을 생성해줘.
+av-vibe-skill-forge부터 먼저 만들어줘.
+```
+
+### 생성 순서 (의존성 고려)
+
+```mermaid
+flowchart LR
+    SF["1️⃣ av-vibe-skill-forge\n스킬 SKILL.md 생성\n레지스트리 자동 등록"]
+    AF["2️⃣ av-vibe-agent-forge\n에이전트 AGENT.md 생성\nMEMORY.md 초기화"]
+    HF["3️⃣ av-vibe-hook-forge\n훅 스크립트 생성\nsettings.json 등록"]
+    RF["4️⃣ av-vibe-rule-forge\n규칙 .md 생성\n레지스트리 등록"]
+    VF["5️⃣ av-vibe-forge\n마스터 오케스트레이터\n14개 서브커맨드"]
+    PI["6️⃣ av-vibe-portable-init\n신규 프로젝트 초기화\nsetup/verify/customize"]
+
+    SF --> AF --> HF --> RF --> VF --> PI
+```
+
+**Phase 3 완료 후 사용 가능한 명령어:**
+```bash
+/av-vibe-forge skill my-skill     # 새 스킬 생성
+/av-vibe-forge agent my-agent     # 새 에이전트 생성
+/av-vibe-forge hook PostToolUse my-hook  # 훅 생성
+/av-vibe-forge rule my-rule       # 규칙 생성
+/av-vibe-forge health             # 생태계 건강도 확인
+```
+
+---
+
+## Phase 4: Core Skills 생성
+
+> **목표**: 일상 개발 워크플로우를 자동화하는 핵심 스킬 10종을 생성합니다.
+
+### Claude에게 말하기
+
+```
+Phase 4 Core Skills 10종을 생성해줘.
+ROUTING_TABLE은 {내 도메인 그룹}에 맞게 커스터마이즈해줘.
+```
+
+### 생성되는 Core Skills
+
+| 스킬 | 명령어 | 역할 |
+|------|--------|------|
+| **av** | `/av {자연어}` | 자연어 → 최적 컴포넌트 자동 라우팅 |
+| **av-pm** | `/av-pm start {feature}` | PM 대화 → PRD → 팀 구성 |
+| **av-base-code-quality** | `/av-base-code-quality` | lint + typecheck + build 순차 실행 |
+| **av-base-git-commit** | `/av-base-git-commit` | Conventional Commits 메시지 자동 생성 |
+| **av-base-sync** | `/av-base-sync` | CLAUDE.md 코드베이스 동기화 |
+| **av-base-refactor** | `/av-base-refactor` | 중복 코드 탐지·리팩토링 계획 |
+| **av-base-post-qa** | `/av-base-post-qa` | 대량 작업 후 QA 오케스트레이션 |
+| **av-ecosystem-optimizer** | `/av-ecosystem-optimizer` | 생태계 토큰·컴포넌트 최적화 |
+| **av-agent-chat** | `/av-agent-chat` | 에이전트와 자연어 대화 |
+| **av-docs-guard** | `/av-docs-guard scan` | 문서 디렉토리 무결성 감시 |
+
+### ROUTING_TABLE 커스터마이즈 (av/SKILL.md)
+
+기본 ROUTING_TABLE에 프로젝트 도메인 경로를 추가해야 합니다:
+
+```
+# 기본 경로 (모든 프로젝트 공통)
+creation + any → /av-vibe-forge skill {name}
+analysis + code → av-base-auditor Level 2
+configuration + git → /av-base-git-commit
+
+# 추가할 도메인 경로 (예시: 이커머스)
+ecom + backend/api → av-ecom-order-backend
+ecom + frontend → av-ecom-order-frontend
+payment + any → av-payment-lead
+```
+
+---
+
+## Phase 5: Hooks & Settings 등록
+
+> **목표**: Claude Code 이벤트에 연결된 자동화 훅 5종을 생성하고 settings.json에 등록합니다.
+
+### Claude에게 말하기
+
+```
+Phase 5 Hooks 5종을 생성하고 settings.json에 등록해줘.
+금지할 Bash 명령어 패턴은 {패턴들}이야.
+```
+
+### 생성되는 Hooks와 동작 시점
+
+```mermaid
+flowchart TD
+    subgraph "Claude Code 이벤트"
+        E1["SessionStart\n세션 시작"]
+        E2["PreToolUse: Write/Edit\n파일 쓰기 전"]
+        E3["PostToolUse: Write/Edit\n파일 쓴 후"]
+        E4["PreToolUse: Bash\nBash 실행 전"]
+        E5["PreCompact\n컨텍스트 압축 전"]
+    end
+
+    subgraph ".claude/hooks/"
+        H1["av-session-discovery.sh\n생태계 컨텍스트 로드\n컴포넌트 수 표시"]
+        H2["av-content-scanner.sh\n민감 정보 검사\n금지 패턴 탐지"]
+        H3["av-post-write-monitor.sh\nav- 컴포넌트 변경 감지\n변경 이력 로깅"]
+        H4["av-bash-guard.sh\n금지 명령어 차단\n위험 패턴 탐지"]
+        H5["av-base-precompact.sh\n메모리 초기화\n컨텍스트 준비"]
+    end
+
+    E1 --> H1
+    E2 --> H2
+    E3 --> H3
+    E4 --> H4
+    E5 --> H5
+```
+
+### settings.json 등록 확인
+
+```bash
+cat .claude/settings.json | jq '.hooks | keys'
+# 기대 출력: ["PostToolUse", "PreToolUse", "SessionStart"]
+
+ls -la .claude/hooks/
+# 5개 .sh 파일 + 실행 권한(x) 확인
+```
+
+---
+
+## 완성 검증
+
+### 생태계 건강도 확인
+
 ```
 /av-vibe-forge health
 ```
 
-Expected output:
+예상 출력:
 ```
-════════════════════════════════
-AutoVibe 생태계 건강도: 95/100
-════════════════════════════════
-✅ OK: 33개
-⚠️ STALE: 0개
-❌ MISSING: 0개
-════════════════════════════════
-```
-
----
-
-## Phase 6: Domain Expansion (Ongoing)
-
-Once the base ecosystem is ready, expand it through conversation:
-
-```
-나는 [도메인명] 도메인 전담 에이전트가 필요해
+════════════════════════════════════════
+  AutoVibe 생태계 건강도: 95/100
+════════════════════════════════════════
+  ✅ OK: 33개 컴포넌트
+  ⚠️ STALE: 0개
+  ❌ MISSING: 0개
+────────────────────────────────────────
+  등록 현황:
+    Rules  4개 | Agents  8개
+    Skills 16개 | Hooks   5개
+════════════════════════════════════════
 ```
 
-Example:
-```
-이커머스 주문 관리 도메인을 위한 에이전트가 필요해
+### 게이트웨이 동작 확인
 
-→ Claude:
-  /av-pm start ecom-order-agents
-  /av-vibe-forge agent ecom-order-lead --group ecom
-  /av-vibe-forge agent ecom-order-backend --group ecom
-  /av-vibe-forge skill ecom-order-impl --group ecom
-  → ROUTING_TABLE 업데이트
 ```
+/av run "코드 품질 검사해줘"
+# 기대: av-base-auditor Level 2 실행
 
-After that:
-```
-/av run "주문 환불 처리 API 구현"
-→ Automatically routes to ecom-order-lead → ecom-order-backend
+/av-pm start test-feature
+# 기대: AskUserQuestion 3라운드 시작
 ```
 
 ---
 
-## Common Commands After Setup
+## Phase 6: 도메인 확장 (진행형)
 
-| Command | Description |
-|---------|-------------|
-| `/av {natural language}` | Smart routing gateway |
-| `/av-pm start {feature}` | Start new feature with PM conversation |
-| `/av-vibe-forge health` | Ecosystem health check |
-| `/av-vibe-forge skill {name}` | Create new skill |
-| `/av-vibe-forge agent {name}` | Create new agent |
-| `/av-base-code-quality` | Run code quality checks |
-| `/av-base-git-commit` | Auto-generate commit message |
-| `/av-base-sync` | Sync CLAUDE.md |
+> 기반 생태계 구축 후, 대화로 프로젝트 특화 컴포넌트를 계속 추가합니다.
+
+### 도메인 에이전트 추가 방법
+
+```
+사용자: "결제 도메인 전담 에이전트가 필요해"
+
+Claude 내부 실행:
+  /av-pm start payment-agents
+  → AskUserQuestion (결제 도메인 범위, 스택, 완료 기준)
+  → PRD 생성: docs/00-pm/payment-agents.prd.md
+
+  /av-vibe-forge agent payment-lead --group payment
+  → .claude/agents/av-payment-lead.md 생성
+  → .claude/agent-memory/av-payment-lead/MEMORY.md 초기화
+
+  /av-vibe-forge agent payment-backend --group payment
+  → .claude/agents/av-payment-backend.md 생성
+
+  /av-vibe-forge skill payment-impl --group payment
+  → .claude/skills/av-payment-impl/SKILL.md 생성
+
+  ROUTING_TABLE 업데이트:
+    payment + backend/api → av-payment-backend
+    payment + any → av-payment-lead
+
+결과: /av run "결제 취소 API 구현" → av-payment-backend 자동 라우팅
+```
 
 ---
 
-## Troubleshooting
+## 주요 명령어 참조
 
-### `.claude/` directory not created
-Make sure you're running Claude Code from your project root:
+| 명령어 | 설명 | 사용 시점 |
+|--------|------|---------|
+| `/av {자연어}` | 지능형 라우팅 게이트웨이 | 항상 |
+| `/av-pm start {feature}` | PM 대화로 새 기능 시작 | 새 기능 개발 시 |
+| `/av-vibe-forge health` | 생태계 건강도 0~100점 | 주기적 점검 |
+| `/av-vibe-forge skill {name}` | 새 스킬 생성 | Phase 6 확장 |
+| `/av-vibe-forge agent {name}` | 새 에이전트 생성 | Phase 6 확장 |
+| `/av-vibe-forge list` | 전체 컴포넌트 목록 | 현황 파악 |
+| `/av-base-code-quality` | 코드 품질 검사 | PR 전 |
+| `/av-base-git-commit` | 커밋 메시지 자동 생성 | 커밋 시 |
+| `/av-base-sync` | CLAUDE.md 최신화 | 코드 변경 후 |
+| `/av-ecosystem-optimizer` | 생태계 최적화 | 월 1회 |
+
+---
+
+## 자주 발생하는 문제 해결
+
+### `.claude/` 디렉토리가 생성되지 않는 경우
+
+Claude Code가 프로젝트 루트에서 실행되고 있는지 확인하세요:
 ```bash
-pwd  # Should show your project root
+pwd  # 프로젝트 루트여야 함
+ls   # CLAUDE.md 또는 .git/ 확인
 claude
 ```
 
-### bkit PDCA skill not found
-Install the bkit plugin first. See [bkit-integration.md](bkit-integration.md).
+### bkit PDCA 스킬을 찾을 수 없는 경우
 
-### Phase failed mid-way
-Check the PDCA document at `docs/pdca/active/` for progress:
+[bkit-integration.md](bkit-integration.md)를 참고하여 플러그인을 재설치하거나 Claude Code 세션을 재시작하세요.
+
+### Phase가 중간에 실패한 경우
+
+현재 진행 상황을 확인하고 해당 Phase부터 재시작하세요:
 ```
 /pdca status
 ```
 
-Resume from where it stopped by telling Claude which phase to continue.
-
-### components.json not updating
-After creating components manually, ask Claude to update the registry:
+실패한 Phase만 재시작:
 ```
-components.json 레지스트리를 현재 .claude/ 폴더 기준으로 동기화해줘
+Phase {N} {단계명}을 다시 실행해줘. Design Spec §{섹션} 참고해서.
+```
+
+### components.json이 업데이트되지 않는 경우
+
+컴포넌트를 수동으로 생성한 경우 레지스트리 동기화를 요청하세요:
+```
+.claude/ 폴더를 스캔해서 components.json 레지스트리를 최신화해줘.
+```
+
+### 생태계 건강도가 낮은 경우 (70점 미만)
+
+```
+/av-vibe-forge health
+# MISSING 항목 확인 → 해당 컴포넌트 재생성
+
+/av-vibe-forge validate
+# 파일 무결성 검증 → 오류 수정
 ```
