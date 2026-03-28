@@ -26,7 +26,7 @@ av-ecom-order-lead    → "AutoVibe 생태계의 ecom 도메인 order 파트 lea
 
 ```
 av-{domain}-{name}
- │    │        └─ kebab-case, 최대 3단어 (도메인 제외)
+ │    │        └─ kebab-case, 최대 2단어 (도메인 제외)
  │    └─ 도메인: base | vibe | util | {project-specific}
  └─ AutoVibe 생태계 마커 (필수, 항상 소문자)
 ```
@@ -38,7 +38,7 @@ av-{domain}-{name}
 | `av-` 접두사 필수 | `av-base-auditor` ✅ `base-auditor` ❌ |
 | 모두 소문자 | `av-base-auditor` ✅ `av-Base-Auditor` ❌ |
 | 구분자는 하이픈만 | `av-base-auditor` ✅ `av_base_auditor` ❌ |
-| 전체 최대 5단어 | `av-base-code-quality` ✅ `av-base-code-quality-checker` ❌ |
+| 전체 최대 4단어 | `av-base-code-quality` ✅ `av-base-code-quality-checker` ❌ |
 | 의미 있는 이름 | `av-base-auditor` ✅ `av-base-agent1` ❌ |
 
 ---
@@ -271,7 +271,7 @@ av-post-write-monitor.sh    → post-write 이벤트, monitor 훅
 base-auditor.md              → av- 접두사 없음
 av_base_auditor.md           → 언더스코어 사용 금지
 av-Base-Auditor.md           → 대문자 사용 금지
-av-base-code-quality-checker.md  → 5단어 초과 (최대 5단어: av-base-code-quality)
+av-base-code-quality-checker.md  → 5단어, 최대 4단어 초과 (✅ av-base-code-quality로 줄이기)
 av-agent1.md                 → 의미 없는 이름 금지
 av-base.md                   → 이름이 너무 짧고 모호
 auditor-av.md                → av- 접두사 위치 오류

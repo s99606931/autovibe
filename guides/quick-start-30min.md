@@ -31,7 +31,7 @@ bkit 메뉴가 나타나면 준비 완료입니다. 나타나지 않으면 [guid
 
 ```bash
 # AutoVibe 저장소 클론
-git clone https://github.com/{your-org}/autovibe.git /tmp/autovibe
+git clone https://github.com/s99606931/autovibe.git /tmp/autovibe
 
 # 내 프로젝트 이동
 cd my-project

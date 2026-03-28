@@ -104,7 +104,7 @@ bkit은 AutoVibe의 PDCA 사이클을 구동하는 핵심 플러그인입니다.
 
 ```bash
 # AutoVibe 저장소 클론
-git clone https://github.com/{your-org}/autovibe.git /tmp/autovibe
+git clone https://github.com/s99606931/autovibe.git /tmp/autovibe
 
 # 내 프로젝트에 문서 복사
 mkdir -p docs/autovibe
