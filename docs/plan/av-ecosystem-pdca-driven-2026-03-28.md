@@ -352,7 +352,7 @@ Claude: /av-pm start ecom-order-agents
 
 ## 참조
 
-- **PRD**: `docs/00-pm/00.20-prd/av-ecosystem-pdca-driven.prd.md`
-- **Design Spec**: `docs/80-reference/80.02-internal/av-ecosystem-design-spec.md`
+- **PRD**: `docs/prd/av-ecosystem-pdca-driven.prd.md`
+- **Design Spec**: `docs/design/av-ecosystem-design-spec.md`
 - **av-org-protocol**: `.claude/rules/av-org-protocol.md`
 - **Frontmatter Spec**: `.claude/docs/av-claude-code-spec/topics/frontmatter-spec.md`

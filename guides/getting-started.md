@@ -3,6 +3,29 @@
 > PDCA 대화를 통해 6개 Phase로 AI 에이전트 생태계를 구축합니다.
 > 이 가이드는 Phase 0부터 Phase 5까지 단계별로 진행하는 방법을 설명합니다.
 
+**처음 시작하신다면**: [guides/quick-start-30min.md](quick-start-30min.md) — 30분 타임라인 가이드
+**컴포넌트 이름이 궁금하다면**: [guides/naming-guide.md](naming-guide.md) — 네이밍 완전 가이드
+**Phase GO/NO-GO 기준이 궁금하다면**: [guides/phase-progression.md](phase-progression.md)
+
+---
+
+## 표준 Claude 프롬프트 패턴
+
+모든 Phase는 다음 형식으로 시작합니다:
+
+```
+Phase {N}을 시작해줘.
+```
+
+Claude가 AskUserQuestion으로 필요한 정보(기술 스택, 도메인 등)를 자동으로 수집합니다.
+추가 옵션이 있을 때만 지정하면 됩니다:
+
+```
+Phase 2를 시작해줘. 기술 스택은 FastAPI + React야.
+Phase 4를 시작해줘. 도메인은 user, order, payment야.
+Phase 5를 시작해줘. rm -rf와 DROP TABLE은 금지해줘.
+```
+
 ---
 
 ## 전체 흐름 개요
@@ -115,9 +138,14 @@ claude
 ### Claude에게 다음과 같이 말하세요
 
 ```
-docs/autovibe/design/av-ecosystem-design-spec.md 를 읽고
-bkit PDCA로 AutoVibe Phase 0 기반 인프라를 구축해줘.
+AutoVibe 생태계를 구축하고 싶어. Phase 0부터 시작해줘.
 ```
+
+Claude가 자동으로 Design Spec을 참조하여 단계를 진행합니다. 처음 실행 시 4가지 질문에 답해주세요:
+- 프로젝트 이름 (예: `my-saas`)
+- 기술 스택 (예: `NestJS + Next.js`)
+- 도메인 그룹 (예: `user, order, payment`)
+- 소스 루트 경로 (기본값 `src` 그대로 Enter 가능)
 
 ### Claude가 하는 일 (내부 동작)
 
@@ -169,8 +197,7 @@ sequenceDiagram
 ### Claude에게 말하기
 
 ```
-Phase 1 Base Rules 4종을 생성해줘.
-docs/autovibe/design/av-ecosystem-design-spec.md §3 을 참고해서.
+Phase 1을 시작해줘.
 ```
 
 ### 생성되는 Rules
@@ -201,9 +228,11 @@ graph LR
 ### Claude에게 말하기
 
 ```
-Phase 2 Base Agents 8종을 생성해줘.
-기술 스택은 {내 스택}이야. Design Spec §4 참고해서.
+Phase 2를 시작해줘.
 ```
+
+기술 스택이 Phase 0에서 이미 설정되었다면 Claude가 자동으로 적용합니다.
+스택을 변경하고 싶다면: `Phase 2를 시작해줘. 기술 스택은 FastAPI + React야.`
 
 ### 생성되는 Agents
 
@@ -245,8 +274,7 @@ graph TD
 ### Claude에게 말하기
 
 ```
-Phase 3 Meta Skills (Forge) 6종을 생성해줘.
-av-vibe-skill-forge부터 먼저 만들어줘.
+Phase 3을 시작해줘.
 ```
 
 ### 생성 순서 (의존성 고려)
@@ -281,9 +309,10 @@ flowchart LR
 ### Claude에게 말하기
 
 ```
-Phase 4 Core Skills 10종을 생성해줘.
-ROUTING_TABLE은 {내 도메인 그룹}에 맞게 커스터마이즈해줘.
+Phase 4를 시작해줘.
 ```
+
+ROUTING_TABLE을 직접 지정하고 싶다면: `Phase 4를 시작해줘. 도메인은 user, order, payment야.`
 
 ### 생성되는 Core Skills
 
@@ -325,9 +354,10 @@ payment + any → av-payment-lead
 ### Claude에게 말하기
 
 ```
-Phase 5 Hooks 5종을 생성하고 settings.json에 등록해줘.
-금지할 Bash 명령어 패턴은 {패턴들}이야.
+Phase 5를 시작해줘.
 ```
+
+금지할 Bash 명령어 패턴이 있다면: `Phase 5를 시작해줘. rm -rf와 DROP TABLE은 금지해줘.`
 
 ### 생성되는 Hooks와 동작 시점
 
@@ -415,7 +445,7 @@ ls -la .claude/hooks/
 Claude 내부 실행:
   /av-pm start payment-agents
   → AskUserQuestion (결제 도메인 범위, 스택, 완료 기준)
-  → PRD 생성: docs/00-pm/payment-agents.prd.md
+  → PRD 생성: docs/prd/payment-agents.prd.md
 
   /av-vibe-forge agent payment-lead --group payment
   → .claude/agents/av-payment-lead.md 생성

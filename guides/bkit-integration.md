@@ -112,7 +112,7 @@ sequenceDiagram
     U->>C: "Phase 1 Base Rules 만들어줘"
 
     C->>bkit: /pdca plan av-ecosystem-p1-rules
-    bkit->>F: Write docs/pdca/active/av-ecosystem-p1-rules-2026-03-28.md
+    bkit->>F: Write docs/plan/av-ecosystem-p1-rules-2026-03-28.md
     Note over bkit: Plan 섹션: 목표=4개 Rule 생성<br/>범위=.claude/rules/<br/>기준=autovibe:true frontmatter
 
     C->>bkit: /pdca design av-ecosystem-p1-rules
@@ -311,10 +311,10 @@ your-project/
 
 ### PDCA 문서가 생성되지 않는 경우
 
-`docs/pdca/active/` 디렉토리가 없으면 먼저 생성하세요:
+`docs/plan/` 디렉토리가 없으면 먼저 생성하세요:
 
 ```bash
-mkdir -p docs/pdca/{active,archived/archive}
+mkdir -p docs/plan docs/prd docs/design
 ```
 
 ### 팀 모드에서 에이전트가 실행되지 않는 경우

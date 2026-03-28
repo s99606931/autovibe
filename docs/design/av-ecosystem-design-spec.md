@@ -3,8 +3,8 @@
 > **Claude Code 실행용 완전 명세 문서**
 > 이 문서만으로 신규 프로젝트에서 bkit PDCA를 통해 av 생태계를 재현 가능.
 > 생성일: 2026-03-28 | 버전: 1.0
-> **연관 PRD**: `docs/00-pm/00.20-prd/av-ecosystem-pdca-driven.prd.md`
-> **PDCA Plan**: `docs/pdca/active/av-ecosystem-pdca-driven-2026-03-28.md`
+> **연관 PRD**: `docs/prd/av-ecosystem-pdca-driven.prd.md`
+> **PDCA Plan**: `docs/plan/av-ecosystem-pdca-driven-2026-03-28.md`
 
 ---
 
@@ -1046,10 +1046,51 @@ av-base-code-quality 빌드 명령어:
 
 ---
 
-## 13. 참조
+## 13. Claude 대화 표준 패턴 (AskUserQuestion 흐름)
 
-- **PRD**: `docs/00-pm/00.20-prd/av-ecosystem-pdca-driven.prd.md`
-- **PDCA Plan**: `docs/pdca/active/av-ecosystem-pdca-driven-2026-03-28.md`
+### 13.1 Phase 시작 표준 프롬프트
+
+모든 Phase는 단일 패턴으로 시작합니다:
+
+```
+Phase {N}을 시작해줘.
+```
+
+Claude가 AskUserQuestion으로 필요한 정보를 수집합니다. 추가 옵션이 있을 때만 지정:
+
+```
+Phase 2를 시작해줘. 기술 스택은 {stack}이야.
+Phase 4를 시작해줘. 도메인은 {domain1}, {domain2}야.
+Phase 5를 시작해줘. 금지 명령어는 {pattern}이야.
+```
+
+### 13.2 Phase별 AskUserQuestion 수집 항목
+
+| Phase | 수집 항목 | 기본값 |
+|-------|---------|--------|
+| Phase 0 | 프로젝트 이름, 기술 스택, 도메인 그룹, 소스 루트 | src |
+| Phase 1 | 팀 승인 프로세스 여부, 멀티테넌트 여부 | 단일 개발자, 단일 테넌트 |
+| Phase 2 | 기술 스택 (코드 품질 도구 선택) | Phase 0 설정 재사용 |
+| Phase 3 | 컴포넌트 그룹 체계, ROUTING_TABLE 전략 | base/vibe 기본 경로 |
+| Phase 4 | 도메인 경로 추가 여부 | Phase 0 도메인 그룹 재사용 |
+| Phase 5 | 금지 Bash 명령어 패턴, 세션 로드 컨텍스트 | rm -rf, DROP TABLE |
+| Phase 6 | 도메인 범위, 에이전트 역할, 완료 기준 | Lead + Backend + Impl |
+
+### 13.3 사용자 안내 원칙
+
+1. **질문 최소화**: Phase별로 3개 이하의 핵심 질문만
+2. **기본값 제공**: 모든 항목에 합리적인 기본값 (Enter로 수락 가능)
+3. **문맥 재사용**: Phase 0 설정은 이후 모든 Phase에서 재사용
+4. **에러 시 즉시 안내**: 문제 발생 시 구체적인 재시도 방법 제시
+
+---
+
+## 14. 참조
+
+- **PRD**: `docs/prd/av-ecosystem-pdca-driven.prd.md`
+- **PDCA Plan**: `docs/plan/av-ecosystem-pdca-driven-2026-03-28.md`
+- **Phase 진행 가이드**: `guides/phase-progression.md` (GO/NO-GO 기준, 롤백 방법)
+- **네이밍 가이드**: `guides/naming-guide.md` (컴포넌트 이름 단일 진실 소스)
 - **현재 av 생태계 샘플**:
   - Rules: `/data/all-saas/.claude/rules/av-*.md`
   - Agents: `/data/all-saas/.claude/agents/` (또는 CLAUDE.md agent 섹션)

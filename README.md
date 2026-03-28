@@ -283,28 +283,33 @@ autovibe/
 | bkit 플러그인 | 최신 | `/bkit` (Claude Code 내) |
 | git | 2.x+ | `git --version` |
 
-### 3단계 시작
+### 30분 빠른 시작
+
+AutoVibe는 **파일 복사 없이 대화로** 시작합니다.
+
+**Step 1: AutoVibe 저장소를 클론**
 
 ```bash
-# 1단계: AutoVibe 문서 내 프로젝트로 복사
 git clone https://github.com/{your-org}/autovibe.git
-mkdir -p my-project/docs/autovibe
-cp -r autovibe/docs my-project/docs/autovibe/
-
-# 2단계: 프로젝트에서 Claude Code 실행
-cd my-project
-claude
-
-# 3단계: Claude에게 다음과 같이 말하세요
+cd my-project   # 내 프로젝트 디렉토리로 이동
+claude          # Claude Code 실행
 ```
 
-Claude에게 전달할 메시지:
+**Step 2: Claude에게 한 마디**
+
 ```
-docs/autovibe/design/av-ecosystem-design-spec.md 를 참고해서
-bkit PDCA로 AutoVibe 생태계를 Phase 0부터 시작해서 구축해줘.
+AutoVibe 생태계를 구축하고 싶어. Phase 0부터 시작해줘.
 ```
 
-자세한 단계별 가이드는 [guides/getting-started.md](guides/getting-started.md)를 참고하세요.
+Claude가 자동으로:
+- 프로젝트 이름, 기술 스택, 도메인을 물어봅니다
+- `.claude/` 디렉토리 구조를 생성합니다
+- 단계별로 안내합니다
+
+> 30분 안에 Phase 0 완료를 목표로 합니다.
+> 세부 타임라인: [guides/quick-start-30min.md](guides/quick-start-30min.md)
+> 단계별 상세 가이드: [guides/getting-started.md](guides/getting-started.md)
+> 네이밍 규칙: [guides/naming-guide.md](guides/naming-guide.md)
 
 ---
 

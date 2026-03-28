@@ -2,7 +2,7 @@
 
 > **PM**: av-pm | **요청자**: CEO | **생성일**: 2026-03-28
 > **상태**: CONFIRMED
-> **연관 문서**: `docs/pdca/active/av-ecosystem-pdca-driven-2026-03-28.md` | `docs/80-reference/80.02-internal/av-ecosystem-design-spec.md`
+> **연관 문서**: `docs/plan/av-ecosystem-pdca-driven-2026-03-28.md` | `docs/design/av-ecosystem-design-spec.md`
 
 ---
 
@@ -219,8 +219,8 @@ Claude: /pdca check → G1~G3 검증
 
 ## 7. 참조
 
-- **Design Spec**: `docs/80-reference/80.02-internal/av-ecosystem-design-spec.md`
-- **PDCA Plan**: `docs/pdca/active/av-ecosystem-pdca-driven-2026-03-28.md`
+- **Design Spec**: `docs/design/av-ecosystem-design-spec.md`
+- **PDCA Plan**: `docs/plan/av-ecosystem-pdca-driven-2026-03-28.md`
 - **av-base-spec**: `.claude/rules/av-base-spec.md`
 - **av-org-protocol**: `.claude/rules/av-org-protocol.md`
 - **Registry**: `.claude/registry/components.json`
