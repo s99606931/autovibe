@@ -1,22 +1,25 @@
 # OS
 .DS_Store
 Thumbs.db
+*.DS_Store
 
 # Editor
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# Claude Code session files (do not commit)
+# Claude Code — runtime & session files (do not commit)
 .claude/logs/
-.claude/agent-memory/*/MEMORY.md
+.claude/agent-memory/
 
-# bkit runtime files
-.bkit/runtime/
-.bkit/snapshots/
+# bkit — all runtime state (do not commit)
+# pdca-status.json, memory.json 등 로컬 세션 상태 파일 포함
+.bkit/
 
 # Local env
 .env
 .env.local
+.env.*.local
 *.local
