@@ -20,6 +20,7 @@
 #   8-1. Claude Code (Native Install)
 #   8-2. Gemini CLI (선택)
 #   8-3. bkit 플러그인 설치 안내
+#   8-4. gstack 설치 (Garry Tan's Claude Code 스킬 팩)
 #   9. Git 전역 설정 (user.name, email, autocrlf, rebase, prune, credential)
 #
 # 참고:
@@ -460,6 +461,103 @@ EOF
 }
 
 #───────────────────────────────────────────────────────────────────────────────
+# 8-4. gstack (Garry Tan's Claude Code 스킬 팩)
+# 29개 슬래시 명령으로 가상 엔지니어링 팀 구성
+# 필수 의존성: Bun v1.0+, Playwright Chromium (시스템 라이브러리 포함)
+# 참고: https://github.com/garrytan/gstack
+#───────────────────────────────────────────────────────────────────────────────
+setup_gstack() {
+    print_section "8-4. gstack 설치"
+
+    echo "  Garry Tan's Claude Code 스킬 팩 — 29개 AI 슬래시 명령"
+    echo "  Think → Plan → Build → Review → Test → Ship → Reflect"
+    echo ""
+
+    local GSTACK_DIR="$HOME/.claude/skills/gstack"
+
+    if [ -d "$GSTACK_DIR" ]; then
+        log_warn "이미 설치됨: $GSTACK_DIR"
+        read -p "  최신 버전으로 재설치하시겠습니까? (y/N): " reinstall
+        if [[ "$reinstall" =~ ^[Yy]$ ]]; then
+            rm -rf "$GSTACK_DIR"
+        else
+            log_info "건너뜁니다."
+            return
+        fi
+    fi
+
+    # 사전 요구사항 확인
+    if ! command -v git &>/dev/null; then
+        log_error "git이 설치되어 있지 않습니다."
+        return 1
+    fi
+
+    # Bun 설치 (gstack 필수 의존성)
+    if ! command -v bun &>/dev/null; then
+        log_info "Bun 설치 중 (gstack 필수 의존성)..."
+        curl -fsSL https://bun.sh/install | bash
+        export PATH="$HOME/.bun/bin:$PATH"
+        if ! grep -q '\.bun/bin' ~/.bashrc 2>/dev/null; then
+            echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
+        fi
+        log_success "Bun 설치 완료: $(bun --version 2>/dev/null)"
+    else
+        log_success "Bun 이미 설치됨: $(bun --version)"
+    fi
+
+    # GitHub에서 클론
+    log_info "gstack 클론 중 (GitHub → ~/.claude/skills/gstack)..."
+    mkdir -p "$HOME/.claude/skills"
+    git clone --single-branch --depth 1 \
+        https://github.com/garrytan/gstack.git "$GSTACK_DIR"
+
+    # Playwright Chromium 시스템 의존성 설치 (WSL Ubuntu 필수)
+    # /browse, /qa 등 브라우저 스킬이 Playwright Chromium을 사용하며,
+    # 시스템 라이브러리 없이는 setup 단계에서 실패함
+    log_info "Playwright Chromium 시스템 의존성 설치 중..."
+    (
+        cd "$GSTACK_DIR"
+        bunx playwright install-deps chromium 2>/dev/null || \
+            sudo npx playwright install-deps chromium 2>/dev/null || \
+            log_warn "Playwright 시스템 의존성 자동 설치 실패. 수동 실행 필요:"
+    )
+
+    # gstack setup 실행 (--no-prefix: 짧은 명령 이름 사용)
+    if [ -x "$GSTACK_DIR/setup" ]; then
+        log_info "gstack setup 실행 중 (빌드 + Chromium 설치 + 스킬 등록)..."
+        (cd "$GSTACK_DIR" && ./setup --no-prefix)
+        if [ $? -eq 0 ]; then
+            log_success "gstack 설치 완료 (29개 스킬 활성화)"
+        else
+            log_error "gstack setup 실패."
+            log_info "수동 재시도:"
+            echo "   cd $GSTACK_DIR"
+            echo "   bunx playwright install-deps chromium"
+            echo "   ./setup --no-prefix"
+            return 1
+        fi
+    else
+        log_warn "setup 스크립트를 찾을 수 없습니다. 수동 설정이 필요할 수 있습니다."
+        return 1
+    fi
+
+    echo ""
+    log_info "주요 슬래시 명령:"
+    echo "   /review           — 자동 코드 리뷰 + 버그 탐지"
+    echo "   /qa               — 실제 브라우저 테스트 + 자동 수정"
+    echo "   /ship             — CI·테스트·PR 자동화"
+    echo "   /office-hours     — 제품 전략 리뷰"
+    echo "   /plan-ceo-review  — 범위·실현 가능성 검토"
+    echo "   /browse           — Chromium 브라우저 제어"
+    echo "   /autoplan         — 자동 계획 수립"
+    echo "   /cso              — 보안 검토"
+    echo "   /gstack-upgrade   — gstack 최신 버전 업데이트"
+    echo ""
+    log_info "전체 목록: Claude Code에서 /gstack 입력"
+    log_info "참고: https://github.com/garrytan/gstack"
+}
+
+#───────────────────────────────────────────────────────────────────────────────
 # 9. Git 전역 설정
 #───────────────────────────────────────────────────────────────────────────────
 setup_git_config() {
@@ -617,6 +715,7 @@ main() {
     setup_claude_code
     setup_gemini_cli
     setup_bkit_guide
+    setup_gstack
     setup_git_config
     print_summary
 }
