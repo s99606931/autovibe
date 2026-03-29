@@ -32,34 +32,34 @@ Phase 5를 시작해줘. rm -rf와 DROP TABLE은 금지해줘.
 
 ```mermaid
 flowchart TD
-    PRE["🔍 사전 요구사항 확인\nClaude Code + bkit + git"]
+    PRE["🔍 사전 요구사항 확인<br/>Claude Code + bkit + git"]
     PRE --> P0
 
     subgraph BOOTSTRAP["Phase 0 — 기반 인프라 (약 10분)"]
-        P0["📁 .claude/ 디렉토리 생성\n하위 구조 초기화"]
-        P0A["📄 components.json\n빈 레지스트리 생성"]
-        P0B["📝 CLAUDE.md\nAutoVibe 섹션 추가"]
+        P0["📁 .claude/ 디렉토리 생성<br/>하위 구조 초기화"]
+        P0A["📄 components.json<br/>빈 레지스트리 생성"]
+        P0B["📝 CLAUDE.md<br/>AutoVibe 섹션 추가"]
         P0 --> P0A --> P0B
     end
 
     subgraph BASE["Phase 1~2 — Base 컴포넌트 (약 20분)"]
-        P1["📜 Phase 1: Base Rules 4종\nav-base-spec, av-org-protocol\nav-base-memory-first, av-util-mermaid-std"]
-        P2["🤖 Phase 2: Base Agents 8종\naudit, optimize, template, git\nrefactor, qa, sync, vibecoder"]
+        P1["📜 Phase 1: Base Rules 4종<br/>av-base-spec, av-org-protocol<br/>av-base-memory-first, av-util-mermaid-std"]
+        P2["🤖 Phase 2: Base Agents 8종<br/>audit, optimize, template, git<br/>refactor, qa, sync, vibecoder"]
         P1 --> P2
     end
 
     subgraph META["Phase 3~4 — 메타 & 핵심 스킬 (약 30분)"]
-        P3["🔧 Phase 3: Meta Skills 6종\nav-vibe-forge + 4 forge + portable-init"]
-        P4["⚡ Phase 4: Core Skills 10종\n/av, /av-pm, code-quality, git-commit 등"]
+        P3["🔧 Phase 3: Meta Skills 6종<br/>av-vibe-forge + 4 forge + portable-init"]
+        P4["⚡ Phase 4: Core Skills 10종<br/>/av, /av-pm, code-quality, git-commit 등"]
         P3 --> P4
     end
 
     subgraph HOOKS["Phase 5 — 자동화 (약 10분)"]
-        P5["🔗 Phase 5: Hooks 5종\nsettings.json 등록"]
+        P5["🔗 Phase 5: Hooks 5종<br/>settings.json 등록"]
     end
 
     subgraph DOMAIN["Phase 6 — 도메인 확장 (무한)"]
-        P6["🌱 대화로 도메인 에이전트 추가\n프로젝트 맞춤형 성장"]
+        P6["🌱 대화로 도메인 에이전트 추가<br/>프로젝트 맞춤형 성장"]
     end
 
     P0B --> P1
@@ -205,10 +205,10 @@ Phase 1을 시작해줘.
 ```mermaid
 graph LR
     subgraph ".claude/rules/"
-        R1["av-base-spec.md\n모든 컴포넌트 중앙 규칙\n네이밍·버전·등록 원칙"]
-        R2["av-org-protocol.md\n팀원→PL→PM 3단계 승인\n품질 게이트 G1~G5"]
-        R3["av-base-memory-first.md\n작업 시작 전 MEMORY.md 필독\n메모리 계층 관리"]
-        R4["av-util-mermaid-std.md\nMermaid 다이어그램 표준\n다크 테마, 색상 팔레트"]
+        R1["av-base-spec.md<br/>모든 컴포넌트 중앙 규칙<br/>네이밍·버전·등록 원칙"]
+        R2["av-org-protocol.md<br/>팀원→PL→PM 3단계 승인<br/>품질 게이트 G1~G5"]
+        R3["av-base-memory-first.md<br/>작업 시작 전 MEMORY.md 필독<br/>메모리 계층 관리"]
+        R4["av-util-mermaid-std.md<br/>Mermaid 다이어그램 표준<br/>다크 테마, 색상 팔레트"]
     end
 ```
 
@@ -239,20 +239,20 @@ Phase 2를 시작해줘.
 ```mermaid
 graph TD
     subgraph "코드 품질 계층"
-        A1["av-base-auditor\n품질·로직·메모리 검증\nLevel 1~3 감사 수행"]
-        A2["av-base-qa-reviewer\n대량 작업 후 QA 검수\nClosed-Loop 3라운드"]
+        A1["av-base-auditor<br/>품질·로직·메모리 검증<br/>Level 1~3 감사 수행"]
+        A2["av-base-qa-reviewer<br/>대량 작업 후 QA 검수<br/>Closed-Loop 3라운드"]
     end
 
     subgraph "개발 지원 계층"
-        A3["av-base-optimizer\n토큰·컴포넌트·설정 최적화\n생태계 비용 절감"]
-        A4["av-base-template\n템플릿 레지스트리 관리\n드리프트 감지"]
-        A5["av-base-git-committer\nConventional Commits\n메시지 자동 생성"]
-        A6["av-base-refactor-advisor\n중복 코드 탐지·제안\n공통 모듈 추출"]
+        A3["av-base-optimizer<br/>토큰·컴포넌트·설정 최적화<br/>생태계 비용 절감"]
+        A4["av-base-template<br/>템플릿 레지스트리 관리<br/>드리프트 감지"]
+        A5["av-base-git-committer<br/>Conventional Commits<br/>메시지 자동 생성"]
+        A6["av-base-refactor-advisor<br/>중복 코드 탐지·제안<br/>공통 모듈 추출"]
     end
 
     subgraph "동기화 계층"
-        A7["av-base-sync-auditor\nCLAUDE.md 정합성 검증\n불일치 항목 보고"]
-        A8["av-vibe-vibecoder\n생태계 갭 분석\n신규 컴포넌트 추천"]
+        A7["av-base-sync-auditor<br/>CLAUDE.md 정합성 검증<br/>불일치 항목 보고"]
+        A8["av-vibe-vibecoder<br/>생태계 갭 분석<br/>신규 컴포넌트 추천"]
     end
 ```
 
@@ -281,12 +281,12 @@ Phase 3을 시작해줘.
 
 ```mermaid
 flowchart LR
-    SF["1️⃣ av-vibe-skill-forge\n스킬 SKILL.md 생성\n레지스트리 자동 등록"]
-    AF["2️⃣ av-vibe-agent-forge\n에이전트 AGENT.md 생성\nMEMORY.md 초기화"]
-    HF["3️⃣ av-vibe-hook-forge\n훅 스크립트 생성\nsettings.json 등록"]
-    RF["4️⃣ av-vibe-rule-forge\n규칙 .md 생성\n레지스트리 등록"]
-    VF["5️⃣ av-vibe-forge\n마스터 오케스트레이터\n14개 서브커맨드"]
-    PI["6️⃣ av-vibe-portable-init\n신규 프로젝트 초기화\nsetup/verify/customize"]
+    SF["1️⃣ av-vibe-skill-forge<br/>스킬 SKILL.md 생성<br/>레지스트리 자동 등록"]
+    AF["2️⃣ av-vibe-agent-forge<br/>에이전트 AGENT.md 생성<br/>MEMORY.md 초기화"]
+    HF["3️⃣ av-vibe-hook-forge<br/>훅 스크립트 생성<br/>settings.json 등록"]
+    RF["4️⃣ av-vibe-rule-forge<br/>규칙 .md 생성<br/>레지스트리 등록"]
+    VF["5️⃣ av-vibe-forge<br/>마스터 오케스트레이터<br/>14개 서브커맨드"]
+    PI["6️⃣ av-vibe-portable-init<br/>신규 프로젝트 초기화<br/>setup/verify/customize"]
 
     SF --> AF --> HF --> RF --> VF --> PI
 ```
@@ -364,19 +364,19 @@ Phase 5를 시작해줘.
 ```mermaid
 flowchart TD
     subgraph "Claude Code 이벤트"
-        E1["SessionStart\n세션 시작"]
-        E2["PreToolUse: Write/Edit\n파일 쓰기 전"]
-        E3["PostToolUse: Write/Edit\n파일 쓴 후"]
-        E4["PreToolUse: Bash\nBash 실행 전"]
-        E5["PreCompact\n컨텍스트 압축 전"]
+        E1["SessionStart<br/>세션 시작"]
+        E2["PreToolUse: Write/Edit<br/>파일 쓰기 전"]
+        E3["PostToolUse: Write/Edit<br/>파일 쓴 후"]
+        E4["PreToolUse: Bash<br/>Bash 실행 전"]
+        E5["PreCompact<br/>컨텍스트 압축 전"]
     end
 
     subgraph ".claude/hooks/"
-        H1["av-session-discovery.sh\n생태계 컨텍스트 로드\n컴포넌트 수 표시"]
-        H2["av-content-scanner.sh\n민감 정보 검사\n금지 패턴 탐지"]
-        H3["av-post-write-monitor.sh\nav- 컴포넌트 변경 감지\n변경 이력 로깅"]
-        H4["av-bash-guard.sh\n금지 명령어 차단\n위험 패턴 탐지"]
-        H5["av-base-precompact.sh\n메모리 초기화\n컨텍스트 준비"]
+        H1["av-session-discovery.sh<br/>생태계 컨텍스트 로드<br/>컴포넌트 수 표시"]
+        H2["av-content-scanner.sh<br/>민감 정보 검사<br/>금지 패턴 탐지"]
+        H3["av-post-write-monitor.sh<br/>av- 컴포넌트 변경 감지<br/>변경 이력 로깅"]
+        H4["av-bash-guard.sh<br/>금지 명령어 차단<br/>위험 패턴 탐지"]
+        H5["av-base-precompact.sh<br/>메모리 초기화<br/>컨텍스트 준비"]
     end
 
     E1 --> H1
