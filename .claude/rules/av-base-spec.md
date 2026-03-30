@@ -33,10 +33,21 @@ paths:
 | **PL** | av-do-orchestrator | opus | Plan/Design(bkit), Agent Team 스폰, gstack 검증 |
 | **Memory** | av-base-memory-keeper | sonnet | 프로젝트 기억 관리 |
 
+## 생태계 3축
+
+AutoVibe는 3개의 독립 플랫폼을 하나의 AI 개발 생명주기로 통합한다.
+
+| 축 | 정체성 | 핵심 역할 |
+|----|--------|----------|
+| **Claude Code** | AI 런타임 엔진 | 에이전트 실행, 코드 생성, Hook 이벤트, 메모리 |
+| **gstack** | Fast Headless Browser | 브라우저 E2E, 스크린샷, 인터랙션, 벤치마크 |
+| **bkit** | Vibecoding Kit | PDCA 문서, Gap 분석, 코드 분석, 자동 개선 |
+
 ## 플러그인 라우팅
 
-| 요청 유형 | 플러그인 | 호출 |
-|-----------|---------|------|
+| 요청 유형 | 축 | 호출 |
+|-----------|---|------|
+| 에이전트 실행·코드 생성 | Claude Code | `Agent()` / `Task()` / `Read,Write,Edit` |
 | 실행·테스트·배포·브라우저 | gstack | `Skill("gstack", ...)` |
 | 문서 작성(PRD/Plan/Design/Report) | bkit | `Skill("bkit:pdca", ...)` |
 | 코드 품질 분석 | bkit | `Task("bkit:code-analyzer", ...)` |
