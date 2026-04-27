@@ -9,6 +9,7 @@ version: "1.1"
 created: "2026-03-29"
 updated: "2026-04-28"
 group: base
+domain: base
 tools: [Read, Glob, Grep, Write, Edit, Bash, Skill, Agent]
 model: sonnet
 memory: project

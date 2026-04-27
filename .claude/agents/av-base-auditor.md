@@ -1,15 +1,17 @@
 ---
 name: av-base-auditor
 description: |
-  코드 품질·로직·메모리 검증 에이전트.
+  코드 품질·로직·메모리 감사 에이전트 (차단 권한 보유).
   bkit:code-analyzer를 활용하여 품질·보안·아키텍처를 분석한다.
   모든 av- 에이전트 작업 완료 후 Level 1~3 감사 수행.
+  ⚠️ 책임 경계: refactor-advisor와 다름 — auditor는 "게이트 차단" 가능, refactor-advisor는 "권고"만.
   트리거: 모든 av- 스킬/에이전트 종료 프로토콜 (Level에 따라)
 autovibe: true
-version: "1.1"
+version: "1.2"
 created: "2026-03-29"
-updated: "2026-04-28"
+updated: "2026-04-27"
 group: base
+domain: base
 tools: [Read, Glob, Grep, Write, Edit, Agent]
 model: sonnet
 memory: project

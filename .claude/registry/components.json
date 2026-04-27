@@ -1,13 +1,13 @@
 {
   "_meta": {
-    "version": "2.0",
+    "version": "2.1",
     "created": "2026-03-29",
-    "updated": "2026-04-28",
+    "updated": "2026-04-27",
     "description": "AutoVibe ecosystem registry",
     "total": {
-      "agents": 11,
+      "agents": 13,
       "skills": 17,
-      "hooks": 8,
+      "hooks": 9,
       "rules": 6
     }
   },
@@ -229,6 +229,34 @@
       "domain": "vibe",
       "portable": true,
       "description": "생태계 갭 분석·컴포넌트 추천"
+    },
+    "av-base-deployer": {
+      "group": "base",
+      "version": "1.0",
+      "file": ".claude/agents/av-base-deployer.md",
+      "model": "sonnet",
+      "memory": "project",
+      "maxTurns": 30,
+      "status": "active",
+      "created": "2026-04-27",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true,
+      "description": "배포 자동화 (PL 과적재 해소)"
+    },
+    "av-base-doc-generator": {
+      "group": "base",
+      "version": "1.0",
+      "file": ".claude/agents/av-base-doc-generator.md",
+      "model": "sonnet",
+      "memory": "project",
+      "maxTurns": 25,
+      "status": "active",
+      "created": "2026-04-27",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true,
+      "description": "API/Changelog/README 자동 생성"
     }
   },
   "skills": {
@@ -545,6 +573,19 @@
       "autovibe": true,
       "domain": "base",
       "portable": true
+    },
+    "av-plugin-tracker": {
+      "group": "base",
+      "version": "1.0",
+      "hook-type": "SessionStart",
+      "matcher": "startup",
+      "file": ".claude/hooks/av-plugin-tracker.sh",
+      "status": "active",
+      "created": "2026-04-27",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true,
+      "description": "외부 플러그인(bkit/gstack/ECC) 버전 자동 감지"
     }
   }
 }
