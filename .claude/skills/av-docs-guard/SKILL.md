@@ -19,6 +19,6 @@ paths:
 ## 검증 항목
 
 1. PRD ↔ Plan ↔ Design 상호 참조 일치
-2. Design 문서 완성도 → `Task("bkit:design-validator", ...)`
+2. Design 문서 완성도 → `Agent("bkit:design-validator", ...)`
 3. 문서 내 깨진 링크 탐지
 4. 날짜/버전 불일치 감지

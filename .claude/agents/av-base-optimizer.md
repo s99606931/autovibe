@@ -8,6 +8,7 @@ autovibe: true
 version: "1.0"
 created: "2026-03-29"
 group: base
+domain: base
 tools: [Read, Glob, Grep, Write, Edit]
 model: sonnet
 memory: project

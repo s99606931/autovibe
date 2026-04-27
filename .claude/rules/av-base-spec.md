@@ -1,8 +1,9 @@
 ---
 name: av-base-spec
 autovibe: true
-version: "2.0"
+version: "2.1"
 created: "2026-03-29"
+updated: "2026-04-27"
 group: base
 paths:
   - ".claude/agents/**"
@@ -33,36 +34,26 @@ paths:
 | **PL** | av-do-orchestrator | opus | Plan/Design(bkit), Agent Team 스폰, gstack 검증 |
 | **Memory** | av-base-memory-keeper | sonnet | 프로젝트 기억 관리 |
 
-## 생태계 3축
+## 생태계 3축 + 플러그인 라우팅
 
-AutoVibe는 3개의 독립 플랫폼을 하나의 AI 개발 생명주기로 통합한다.
+> **Single Source of Truth**: `.claude/rules/av-base-plugin-routing.md`
+> 3축 정의(Claude Code + gstack + bkit), 7단계 gstack 생명주기, bkit 호출표, 자동 트리거 조건은 모두 plugin-routing 참조.
 
-| 축 | 정체성 | 핵심 역할 |
-|----|--------|----------|
-| **Claude Code** | AI 런타임 엔진 | 에이전트 실행, 코드 생성, Hook 이벤트, 메모리 |
-| **gstack** | Fast Headless Browser | 브라우저 E2E, 스크린샷, 인터랙션, 벤치마크 |
-| **bkit** | Vibecoding Kit | PDCA 문서, Gap 분석, 코드 분석, 자동 개선 |
-
-## 플러그인 라우팅
-
-| 요청 유형 | 축 | 호출 |
-|-----------|---|------|
-| 에이전트 실행·코드 생성 | Claude Code | `Agent()` / `Task()` / `Read,Write,Edit` |
-| 실행·테스트·배포·브라우저 | gstack | `Skill("gstack", ...)` |
-| 문서 작성(PRD/Plan/Design/Report) | bkit | `Skill("bkit:pdca", ...)` |
-| 코드 품질 분석 | bkit | `Task("bkit:code-analyzer", ...)` |
-| 설계-구현 검증 | bkit | `Task("bkit:gap-detector", ...)` |
+**표기 원칙** (CC v2.1.63+): `Agent(...)` 사용. `Task(...)`는 별칭으로 동작하나 **신규 작성 금지**.
 
 ## Topic Index
 
+> Frontmatter/Naming/Protocols/Audit 상세는 위 Quick Reference에 요약. 별도 토픽 문서는 v2.1에서 통합 제거.
+
 | Topic | 파일 |
 |-------|------|
-| Frontmatter | `.claude/docs/av-claude-code-spec/topics/frontmatter-spec.md` |
-| Naming | `.claude/docs/av-claude-code-spec/topics/naming-rules.md` |
-| Protocols | `.claude/docs/av-claude-code-spec/topics/protocols.md` |
-| Audit | `.claude/docs/av-claude-code-spec/topics/audit-rules.md` |
+| Memory First | `.claude/rules/av-base-memory-first.md` |
+| Plugin Routing | `.claude/rules/av-base-plugin-routing.md` |
+| Code Quality Gates | `.claude/rules/av-base-code-quality-gates.md` |
+| Org Protocol | `.claude/rules/av-org-protocol.md` |
 
 ## Stats
 
-- spec: v2.0 | created: 2026-03-29
+- spec: v2.1 | created: 2026-03-29 | updated: 2026-04-27 (5차 PDCA: 표 중복 통합)
 - registry: `.claude/registry/components.json`
+- 품질 점수: gap 99.5% / code 100점 ⭐⭐

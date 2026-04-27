@@ -19,5 +19,5 @@ allowed-tools: [Read, Glob, Grep, Agent, Task]
 
 1. `$1` = agent 이름 확인 (components.json 조회)
 2. `$2+` = 메시지
-3. `Agent("av-$1", "$2+")` 또는 `Task("av-$1", "$2+")` 호출
+3. `Agent("av-$1", "$2+")` 호출 (Task() 별칭은 신규 작성 금지)
 4. 결과 출력

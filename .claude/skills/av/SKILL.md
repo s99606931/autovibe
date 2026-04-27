@@ -53,19 +53,19 @@ document + plan/design/report/문서/보고서
   → Skill("bkit:pdca", "{type} {feature}")
 
 analyze + gap/verify/검증/갭
-  → Task("bkit:gap-detector", ...)
+  → Agent("bkit:gap-detector", ...)
 
 analyze + code/security/quality/품질/보안
-  → Task("bkit:code-analyzer", ...)
-  → Task("av-base-auditor", "Level 2")
+  → Agent("bkit:code-analyzer", ...)
+  → Agent("av-base-auditor", "Level 2")
 
 analyze + runtime/logs/로그/런타임
-  → Task("bkit:qa-monitor", ...)
+  → Agent("bkit:qa-monitor", ...)
 
 # === 기존 라우팅 ===
 creation + any → Skill("av-vibe-forge", "skill {name}")
 optimization + refactor → Skill("av-base-refactor", "analyze {target}")
-optimization + token/component → Task("av-base-optimizer", "{mode} {target}")
+optimization + token/component → Agent("av-base-optimizer", "{mode} {target}")
 configuration + commit/git → Skill("av-base-git-commit", "commit {message}")
 configuration + sync/claude-md → Skill("av-base-sync", "update")
 meta-management + create + skill → Skill("av-vibe-forge", "skill {name}")
