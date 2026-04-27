@@ -1,7 +1,7 @@
 #!/bin/bash
 # name: av-base-precompact
 # autovibe: true
-# version: 2.0
+# version: 2.1
 # created: 2026-03-29
 # updated: 2026-04-27
 # hook-type: SessionStart
@@ -33,14 +33,31 @@ if [ -d "$MEMORY_ROOT" ]; then
   done < <(find "$MEMORY_ROOT" -name "MEMORY.md" -print0 2>/dev/null)
 fi
 
-# 글로벌 메모리 스냅샷 (현재 프로젝트 경로 기반 동적 산출)
-PROJECT_SLUG=$(echo "$CLAUDE_PROJECT_DIR" | sed 's|/|-|g' | sed 's|^-||')
-GLOBAL_MEM="${HOME}/.claude/projects/-${PROJECT_SLUG}/memory"
-# Fallback: 표준 슬러그가 없으면 -data-autovibe 시도 (역호환)
-if [ ! -d "$GLOBAL_MEM" ]; then
-  GLOBAL_MEM="${HOME}/.claude/projects/-data-autovibe/memory"
+# 글로벌 메모리 스냅샷 — 다단계 안전 탐색
+GLOBAL_MEM=""
+
+# 방법 1: ~/.claude/projects 자동 탐색 (basename 매칭, 가장 안전)
+if [ -d "${HOME}/.claude/projects" ]; then
+  PROJECT_BASE=$(basename "$CLAUDE_PROJECT_DIR")
+  while IFS= read -r dir; do
+    if [ -d "${dir}/memory" ] && echo "$dir" | grep -q "${PROJECT_BASE}"; then
+      GLOBAL_MEM="${dir}/memory"
+      break
+    fi
+  done < <(find "${HOME}/.claude/projects" -maxdepth 1 -type d 2>/dev/null)
 fi
-if [ -d "$GLOBAL_MEM" ]; then
+
+# 방법 2 (폴백): 슬러그 기반 직접 매칭
+if [ -z "$GLOBAL_MEM" ]; then
+  PROJECT_SLUG=$(echo "$CLAUDE_PROJECT_DIR" | tr '/' '-' | sed 's|^-||')
+  CANDIDATE="${HOME}/.claude/projects/-${PROJECT_SLUG}/memory"
+  if [ -d "$CANDIDATE" ]; then
+    GLOBAL_MEM="$CANDIDATE"
+  fi
+fi
+
+# 스냅샷 (찾았을 때만)
+if [ -n "$GLOBAL_MEM" ] && [ -d "$GLOBAL_MEM" ]; then
   cp -r "$GLOBAL_MEM" "${SNAPSHOT_DIR}/_global" 2>/dev/null || true
 fi
 

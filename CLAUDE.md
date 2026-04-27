@@ -52,7 +52,7 @@
 |------|-----:|------|
 | Agents | 13 | `.claude/agents/` |
 | Skills | 17 | `.claude/skills/` |
-| Hooks | 9 | `.claude/hooks/` |
+| Hooks | 10 | `.claude/hooks/` |
 | Rules | 6 | `.claude/rules/` |
 
 ### 외부 플러그인

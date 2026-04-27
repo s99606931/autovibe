@@ -13,7 +13,8 @@
           {
             "type": "command",
             "command": "FEATURE=$(echo \"$CLAUDE_USER_PROMPT\" | grep -oP '(?<=/av )\\S+' | head -1); [ -n \"$FEATURE\" ] && echo \"sessionTitle=av:$FEATURE\" || true"
-          }
+          },
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/av-prompt-sync-trigger.sh" }
         ]
       }
     ],
@@ -89,19 +90,12 @@
       "Bash(git show*)",
       "Bash(git stash list*)",
       "Bash(git branch*)",
-      "Bash(jq *)",
-      "Bash(find . -name *)",
-      "Bash(find ./.claude -type f *)",
-      "Bash(find ./.bkit -type f *)",
-      "Bash(find ./scripts -type f *)",
-      "Bash(grep -rn * .claude)",
-      "Bash(grep -rn * .bkit)",
-      "Bash(grep -rn * scripts)",
-      "Bash(grep -E * .claude/*)",
-      "Bash(grep -iE * .claude/*)",
-      "Bash(wc -l*)",
-      "Bash(ls *)",
-      "Bash(echo *)",
+      "Bash(jq:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)",
+      "Bash(echo:*)",
       "Read(.claude/**)",
       "Read(.bkit/**)",
       "Read(scripts/**)",

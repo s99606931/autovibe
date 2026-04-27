@@ -1,13 +1,13 @@
 {
   "_meta": {
-    "version": "2.1",
+    "version": "2.2",
     "created": "2026-03-29",
     "updated": "2026-04-27",
     "description": "AutoVibe ecosystem registry",
     "total": {
       "agents": 13,
       "skills": 17,
-      "hooks": 9,
+      "hooks": 10,
       "rules": 6
     }
   },
@@ -532,14 +532,17 @@
     },
     "av-base-precompact": {
       "group": "base",
-      "version": "1.0",
+      "version": "2.1",
       "hook-type": "SessionStart",
+      "matcher": "compact",
       "file": ".claude/hooks/av-base-precompact.sh",
       "status": "active",
       "created": "2026-03-29",
+      "updated": "2026-04-27",
       "autovibe": true,
       "domain": "base",
-      "portable": true
+      "portable": true,
+      "description": "컴팩션 전 모든 MEMORY.md 자동 스냅샷 + 글로벌 메모리 백업 (PROJECT_SLUG 안전 탐색)"
     },
     "av-agent-spawn-logger": {
       "group": "base",
@@ -576,16 +579,29 @@
     },
     "av-plugin-tracker": {
       "group": "base",
-      "version": "1.0",
+      "version": "2.1",
       "hook-type": "SessionStart",
       "matcher": "startup",
       "file": ".claude/hooks/av-plugin-tracker.sh",
       "status": "active",
       "created": "2026-04-27",
+      "updated": "2026-04-27",
       "autovibe": true,
       "domain": "base",
       "portable": true,
-      "description": "외부 플러그인(bkit/gstack/ECC) 버전 자동 감지"
+      "description": "외부 플러그인 버전 자동 감지 + drift 시 sync 트리거 (sanitized + chmod 600)"
+    },
+    "av-prompt-sync-trigger": {
+      "group": "base",
+      "version": "1.0",
+      "hook-type": "UserPromptSubmit",
+      "file": ".claude/hooks/av-prompt-sync-trigger.sh",
+      "status": "active",
+      "created": "2026-04-27",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true,
+      "description": "plugin drift 트리거 파일 감지 시 sync 권장을 컨텍스트로 자동 주입 (active sync)"
     }
   }
 }
