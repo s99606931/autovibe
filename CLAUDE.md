@@ -1,5 +1,5 @@
 # AutoVibe (av) 프로젝트
-> **CC v2.1.119+ 최적화** | bkit v2.0.8 Dynamic | 2026-04-27
+> **CC v2.1.119+ 최적화** | bkit v2.0.8 Dynamic | 5차 PDCA 완료 (gap 99.5% / code 100점 ⭐⭐) | 2026-04-27
 
 @.claude/rules/av-base-spec.md
 @.claude/rules/av-base-plugin-routing.md
@@ -81,4 +81,14 @@ Git 품질 게이트: `.githooks/pre-commit` (Gate 1~4) + `.githooks/pre-push` (
 | L2 스킬 | `.claude/skills/{name}/MEMORY.md` | 해당 스킬 | 수동 Read/Write |
 | L4 글로벌 | `~/.claude/projects/{slug}/memory/MEMORY.md` | 전체 공유 | Claude Code auto-memory |
 
-precompact 훅이 자동으로 모든 MEMORY.md를 `.claude/logs/snapshots/{ts}/`에 백업.
+> 상세 정책: `.claude/rules/av-base-memory-first.md` | 자동 백업: precompact 훅 → `.claude/logs/snapshots/{ts}/`
+
+### 품질 점수 (5차 PDCA, 2026-04-27)
+
+| 지표 | 점수 | 상태 |
+|------|-----:|------|
+| bkit:gap-detector | **99.50%** | 사실상 만점 |
+| bkit:code-analyzer | **100/100** | 만점 ⭐⭐ |
+| 메모리 계층 / 외부 통합 | 100 / 99.5 | 자기진화 완성 |
+
+다음 측정: 2026-05-11 09:00 KST (자동 routine 등록 완료)

@@ -18,7 +18,7 @@ allowed-tools: [Read, Glob, Grep, Bash, Task]
 1. Bash: `{lint-command}` (프로젝트 스택별)
 2. Bash: `{typecheck-command}` (프로젝트 스택별)
 3. Bash: `{build-command}` (프로젝트 스택별)
-4. `Task("bkit:code-analyzer", ...)` — 품질·보안·아키텍처 분석
+4. `Agent("bkit:code-analyzer", ...)` — 품질·보안·아키텍처 분석
 5. 결과 통합 → G1 품질 게이트 PASS/FAIL 판정
 
 ## 스택별 명령어
