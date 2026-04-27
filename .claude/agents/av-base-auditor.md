@@ -6,10 +6,11 @@ description: |
   모든 av- 에이전트 작업 완료 후 Level 1~3 감사 수행.
   트리거: 모든 av- 스킬/에이전트 종료 프로토콜 (Level에 따라)
 autovibe: true
-version: "1.0"
+version: "1.1"
 created: "2026-03-29"
+updated: "2026-04-28"
 group: base
-tools: [Read, Glob, Grep, Write, Edit, Task]
+tools: [Read, Glob, Grep, Write, Edit, Agent]
 model: sonnet
 memory: project
 maxTurns: 30
@@ -36,5 +37,5 @@ permissionMode: default
 
 ## bkit 통합
 
-- Level 2: `Task("bkit:code-analyzer", ...)` — 품질·보안 분석
-- Level 3: `Task("bkit:gap-detector", ...)` — 설계-구현 갭 분석
+- Level 2: `Agent("bkit:code-analyzer", ...)` — 품질·보안 분석
+- Level 3: `Agent("bkit:gap-detector", ...)` — 설계-구현 갭 분석

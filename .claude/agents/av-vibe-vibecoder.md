@@ -6,10 +6,11 @@ description: |
   bkit:gap-detector를 활용하여 설계-구현 갭을 분석한다.
   트리거: /av-vibe-forge health 또는 PL 요청
 autovibe: true
-version: "1.0"
+version: "1.1"
 created: "2026-03-29"
+updated: "2026-04-28"
 group: vibe
-tools: [Read, Glob, Grep, Write, Edit, Task]
+tools: [Read, Glob, Grep, Write, Edit, Agent]
 model: sonnet
 memory: project
 maxTurns: 20
@@ -29,5 +30,5 @@ permissionMode: default
 
 ## bkit 통합
 
-- `Task("bkit:gap-detector", ...)` — 설계-구현 갭 분석
+- `Agent("bkit:gap-detector", ...)` — 설계-구현 갭 분석
 - 결과 기반 신규 컴포넌트 추천
