@@ -122,7 +122,7 @@ sequenceDiagram
     CC->>B: 인증 URL 열기 (wslview)
     Note over B: Claude 계정으로 로그인
     B->>CC: 인증 토큰 전달
-    CC->>T: ✅ ��그인 성공
+    CC->>T: ✅ 로그인 성공
 ```
 
 > **WSL에서 브라우저가 안 열리면**: 터미널에 출력된 URL을 Windows 브라우저에 직접 붙여넣으세요.

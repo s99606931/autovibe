@@ -1,15 +1,21 @@
 ---
 name: av-base-plugin-routing
 autovibe: true
-version: "1.0"
+version: "2.0"
 created: "2026-03-29"
+updated: "2026-04-27"
 group: base
+paths:
+  - ".claude/agents/**"
+  - ".claude/skills/**"
+  - ".claude/rules/**"
 ---
 
 # av-base-plugin-routing — 생태계 3축 플러그인 라우팅 규칙
 
 > AutoVibe 생태계의 3축(Claude Code + gstack + bkit)이 상호 보완하여 AI 개발 생명주기를 완성한다.
 > 에이전트/스킬이 각 플러그인을 호출하는 라우팅 규칙을 정의한다.
+> **v2.0 변경**: `Task(...)` → `Agent(...)` 표기 통일, paths 스코프 추가, pdca-iterator 자동 트리거 명시
 
 ## 생태계 3축 정의
 
@@ -41,31 +47,50 @@ group: base
 
 ## bkit (품질 보증) — 전 PDCA 주기
 
-| 요청 의도 | bkit 호출 | 담당 |
-|-----------|----------|------|
-| PRD/Plan 작성 | `Skill("bkit:pdca", "plan {feature}")` | PM → PL |
-| Design 작성 | `Skill("bkit:pdca", "design {feature}")` | PL |
-| Report 작성 | `Skill("bkit:pdca", "report {feature}")` | PL |
-| 코드 품질 분석 | `Task("bkit:code-analyzer", ...)` | Auditor |
-| 설계-구현 갭 검증 | `Task("bkit:gap-detector", ...)` | PL |
-| 런타임 QA | `Task("bkit:qa-monitor", ...)` | QA Agent |
-| 자동 개선 | `Task("bkit:pdca-iterator", ...)` | PL |
-| Design 검증 | `Task("bkit:design-validator", ...)` | PL |
+> **표기 원칙** (CC v2.1.63+): `Agent(...)` 사용. `Task(...)`는 별칭으로 동작하나 신규 작성 금지.
+
+| 요청 의도 | bkit 호출 | 담당 | 트리거 |
+|-----------|----------|------|--------|
+| PRD/Plan 작성 | `Skill("bkit:pdca", "plan {feature}")` | PM → PL | 수동 |
+| Design 작성 | `Skill("bkit:pdca", "design {feature}")` | PL | 수동 |
+| Report 작성 | `Skill("bkit:pdca", "report {feature}")` | PL | PM 최종 승인 후 자동 |
+| 코드 품질 분석 | `Agent("bkit:code-analyzer", ...)` | Auditor | 구현 완료 후 자동 |
+| 설계-구현 갭 검증 | `Agent("bkit:gap-detector", ...)` | PL | PR 승인 게이트 자동 |
+| 런타임 QA | `Agent("bkit:qa-monitor", ...)` | QA Agent | av-base-post-qa 호출 시 |
+| 자동 개선 루프 | `Agent("bkit:pdca-iterator", ...)` | PL | gap < 90% 시 **자동 트리거** |
+| Design 검증 | `Agent("bkit:design-validator", ...)` | Sync-Auditor | CLAUDE.md/docs 변경 후 자동 |
+
+### pdca-iterator 자동 트리거 조건
+
+```
+PL 검증 프로토콜에서:
+match_rate = Agent("bkit:gap-detector").result.match_rate
+IF match_rate < 0.90:
+  Agent("bkit:pdca-iterator", { target: 0.90, max_iterations: 2 })
+  재측정 → 90% 미달 시 PM에 보고
+```
+
+### bkit 도메인 에이전트 사용 정책
+
+bkit의 cto-lead, frontend-architect 등 도메인 에이전트는 av-base-* 에이전트와 책임이 중복된다.
+**정책: av 에이전트가 우선. bkit 도메인 에이전트는 호출하지 않는다.**
+단, 프로젝트 도메인 특화 에이전트 신설 시 bkit 에이전트 정의를 참고 패턴으로만 활용.
 
 ## Claude Code (AI 런타임) — av 실행 기반
 
-| 요청 의도 | Claude Code 기능 | 담당 |
-|-----------|-----------------|------|
-| 에이전트 실행 | `Agent("av-pm-coordinator", ...)` | av 게이트웨이 |
-| Team 스폰 | Agent Teams API | PL |
-| 코드 생성 | Read, Write, Edit, Bash | Agent Team |
-| 이벤트 처리 | Hook (PostToolUse, SessionStart, SubagentStop) | 자동 |
-| 영구 학습 | `memory: project` → `.claude/agent-memory/` | 에이전트 자동 |
+| 요청 의도 | Claude Code 기능 | 담당 | 비고 |
+|-----------|-----------------|------|------|
+| 에이전트 실행 | `Agent("av-pm-coordinator", ...)` | av 게이트웨이 | initialPrompt 자동 실행 |
+| Team 스폰 | Agent Teams API | PL | `isolation: worktree` 옵션 |
+| 코드 생성 | Read, Write, Edit, Bash | Agent Team | — |
+| 이벤트 처리 | Hook (UserPromptSubmit, PostToolUse, SessionStart) | 자동 | — |
+| 영구 학습 | `memory: project` → `.claude/agent-memory/` | 에이전트 자동 | — |
 
 ## 라우팅 원칙
 
-1. 에이전트는 `av-base-plugin-routing` 규칙에 따라 3축 플러그인을 직접 호출한다
-2. 사용자는 `/av {자연어}` 하나만 입력 — av ROUTING_TABLE이 최적 플러그인 선택
+1. 에이전트는 이 규칙에 따라 3축 플러그인을 직접 호출한다
+2. 사용자는 `/av {자연어}` 하나만 입력 — av가 최적 플러그인 자동 선택
 3. PM/PL/Agent가 각자 역할에 따라 Claude Code/gstack/bkit을 호출
 4. 플러그인 세부 명령어는 av 컴포넌트 내부에 캡슐화 (사용자 노출 최소화)
 5. 3축 중 하나라도 빠지면 해당 PDCA 단계의 자동화 품질이 저하된다
+6. **Agent() > Task() 표기** — Task는 별칭으로 유효하나 신규 작성 시 Agent() 사용
