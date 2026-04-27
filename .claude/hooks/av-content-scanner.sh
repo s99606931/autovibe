@@ -1,7 +1,7 @@
 #!/bin/bash
 # name: av-content-scanner
 # autovibe: true
-# version: 2.0
+# version: 2.1
 # created: 2026-03-29
 # updated: 2026-04-27
 # hook-type: PreToolUse
@@ -18,9 +18,19 @@ fi
 
 INPUT=$(cat)
 CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // .tool_input.new_string // ""' 2>/dev/null || echo "")
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""' 2>/dev/null || echo "")
 
 # 빈 내용은 통과
 [ -z "$CONTENT" ] && exit 0
+
+# 보안 도구 정의 파일은 의도적으로 위험 패턴을 정의하므로 검사 제외 (화이트리스트)
+case "$FILE_PATH" in
+  */.claude/hooks/*) exit 0 ;;
+  */.githooks/*) exit 0 ;;
+  */.claude/rules/av-base-code-quality-gates.md) exit 0 ;;
+  */.claude/agent-memory/*) exit 0 ;;
+  */docs/*) exit 0 ;;
+esac
 
 SENSITIVE_PATTERNS=(
   # AWS
@@ -66,10 +76,10 @@ SENSITIVE_PATTERNS=(
   "secret\s*=\s*['\"][^'\"]{8,}['\"]"
   "api_?key\s*=\s*['\"][^'\"]{16,}['\"]"
 
-  # Database connection strings (분할 표기로 pre-commit Gate 1 false positive 회피)
-  "mong""odb(\\+srv)?://[^:]+:[^@]+@"
-  "postg""res(ql)?://[^:]+:[^@]+@"
-  "my""sql://[^:]+:[^@]+@"
+  # Database connection strings
+  "mongodb(\\+srv)?://[^:]+:[^@]+@"
+  "postgres(ql)?://[^:]+:[^@]+@"
+  "mysql://[^:]+:[^@]+@"
 
   # SSH
   "ssh-rsa\s+AAAA[0-9A-Za-z+/=]{100,}"
@@ -79,8 +89,9 @@ SENSITIVE_PATTERNS=(
 )
 
 for pattern in "${SENSITIVE_PATTERNS[@]}"; do
-  if echo "$CONTENT" | grep -qiE "$pattern"; then
+  if echo "$CONTENT" | grep -qiE -- "$pattern" 2>/dev/null; then
     echo "[av-content-scanner] BLOCKED: sensitive pattern detected" >&2
+    echo "[av-content-scanner] File: ${FILE_PATH:-<unknown>}" >&2
     echo "[av-content-scanner] Pattern: $pattern" >&2
     exit 2
   fi

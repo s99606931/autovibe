@@ -33,8 +33,13 @@ if [ -d "$MEMORY_ROOT" ]; then
   done < <(find "$MEMORY_ROOT" -name "MEMORY.md" -print0 2>/dev/null)
 fi
 
-# 글로벌 메모리도 스냅샷 (있으면)
-GLOBAL_MEM="${HOME}/.claude/projects/-data-autovibe/memory"
+# 글로벌 메모리 스냅샷 (현재 프로젝트 경로 기반 동적 산출)
+PROJECT_SLUG=$(echo "$CLAUDE_PROJECT_DIR" | sed 's|/|-|g' | sed 's|^-||')
+GLOBAL_MEM="${HOME}/.claude/projects/-${PROJECT_SLUG}/memory"
+# Fallback: 표준 슬러그가 없으면 -data-autovibe 시도 (역호환)
+if [ ! -d "$GLOBAL_MEM" ]; then
+  GLOBAL_MEM="${HOME}/.claude/projects/-data-autovibe/memory"
+fi
 if [ -d "$GLOBAL_MEM" ]; then
   cp -r "$GLOBAL_MEM" "${SNAPSHOT_DIR}/_global" 2>/dev/null || true
 fi

@@ -77,7 +77,7 @@ match_rate = result.match_rate
 
 # Phase 2: 게이트 분기
 if match_rate >= 0.90:
-    # 합격: 추가 검증 후 PM 승인 요청
+    # 합격: 추가 검증 → PM 승인 → deployer 자동 위임
     Skill("gstack", "check-errors {url}")           # 브라우저 E2E
     Agent("bkit:code-analyzer", {...})              # 코드 품질
     Agent("av-base-memory-keeper", {                # 학습 자동 저장
@@ -85,7 +85,21 @@ if match_rate >= 0.90:
         "feature": "{feature}",
         "match_rate": match_rate
     })
-    request_pm_approval()
+
+    pm_approval = request_pm_approval()
+
+    # PM 승인 후 배포 환경별 분기 — av-base-deployer에 위임
+    if pm_approval.approved:
+        target_env = pm_approval.target_env  # "dev" | "staging" | "prod"
+        Agent("av-base-deployer", {
+            "feature": "{feature}",
+            "env": target_env,
+            "version": "{version}",
+            "match_rate": match_rate,
+            "code_quality_score": code_quality.score
+        })
+        # deployer가 환경별 카나리 + 헬스체크 + 롤백까지 자동 처리
+        # 결과는 deployer가 Memory Keeper에 deployment_record로 저장
 
 else:
     # 미달: 자동 개선 루프 트리거
@@ -131,5 +145,19 @@ else:
 ### 종료 프로토콜
 1. Report 작성 (`Skill("bkit:pdca", "report")`)
 2. **자동 학습 전달**: `Agent("av-base-memory-keeper", {"action": "archive", "feature": "{feature}", "outcomes": [...]})`
-3. MEMORY.md 업데이트 (아키텍처 결정, 기술 패턴, 게이트 결과)
-4. Archive → 다음 PDCA 사이클을 위한 컨텍스트 보존
+3. **자동 문서 생성**: `Agent("av-base-doc-generator", {"action": "changelog", "feature": "{feature}"})` — Changelog/README 자동 갱신
+4. MEMORY.md 업데이트 (아키텍처 결정, 기술 패턴, 게이트 결과)
+5. Archive → 다음 PDCA 사이클을 위한 컨텍스트 보존
+
+## 책임 위임 매트릭스 (단일 책임 원칙)
+
+| 영역 | 담당 에이전트 | PL의 역할 |
+|------|--------------|----------|
+| 코드 품질 감사 (차단) | av-base-auditor | 결과 수신 |
+| 리팩토링 권고 | av-base-refactor-advisor | 권고 평가 |
+| QA E2E + 런타임 | av-base-qa-reviewer | 결과 수신 |
+| 배포 (환경별/카나리/롤백) | av-base-deployer | 위임 후 결과 수신 |
+| 문서 생성 (API/Changelog) | av-base-doc-generator | 위임 후 결과 수신 |
+| 메모리 영구 저장 | av-base-memory-keeper | 자동 호출 |
+
+PL은 "조율자"이지 모든 작업의 "실행자"가 아니다. 위 위임이 작동하지 않으면 PL이 과적재된다.
