@@ -7,14 +7,15 @@ description: |
   bkit으로 문서를 관리하고 bkit:gap-detector로 구현을 검증한다.
   트리거: PM이 PRD 전달 시 또는 /av run에서 PL 라우팅
 autovibe: true
-version: "2.0"
+version: "2.1"
 created: "2026-03-29"
+updated: "2026-04-27"
 group: base
 domain: base
 tools: [Read, Write, Edit, Glob, Grep, Bash, Agent, Skill]
 model: opus
 permissionMode: default
-maxTurns: 100
+maxTurns: 70
 memory: project
 effort: max
 initialPrompt: |
@@ -102,30 +103,21 @@ if match_rate >= 0.90:
         # 결과는 deployer가 Memory Keeper에 deployment_record로 저장
 
 else:
-    # 미달: 자동 개선 루프 트리거
-    iteration = 0
-    while match_rate < 0.90 and iteration < 2:
-        Agent("bkit:pdca-iterator", {
-            "feature": "{feature}",
-            "target_match_rate": 0.90,
-            "max_iterations": 1
-        })
-        # 재측정
-        result = Agent("bkit:gap-detector", {...})
-        match_rate = result.match_rate
-        iteration += 1
-
-    # 학습 저장 (성공/실패 모두)
-    Agent("av-base-memory-keeper", {
-        "type": "iteration_result",
-        "iterations": iteration,
-        "final_match_rate": match_rate
+    # 미달: av-base-iterate 단일 진입점으로 위임 (bkit:pdca-iterator 직접 호출 금지)
+    iter_result = Skill("av-base-iterate", {
+        "feature": "{feature}",
+        "--target": 0.90,
+        "--max": 2
     })
+    # av-base-iterate가 내부적으로:
+    #  - bkit:pdca-iterator 호출
+    #  - 재측정
+    #  - Memory Keeper 자동 학습 저장 (iteration_record)
 
-    if match_rate < 0.90:
+    if iter_result.status != "passed":
         report_to_pm({
             "status": "gate_failed",
-            "reason": "match_rate {match_rate} < 0.90 after 2 iterations"
+            "reason": f"match_rate {iter_result.final} < 0.90 after {iter_result.iterations} iterations"
         })
 ```
 
@@ -133,6 +125,8 @@ else:
 1. `Task(...)` 표기 사용 금지 — `Agent(...)`만 사용
 2. Match Rate 게이트를 우회하는 PM 승인 요청 금지
 3. 모든 게이트 통과/실패 결과는 Memory Keeper에 자동 저장 (학습 누적)
+4. **bkit:pdca-iterator 직접 호출 금지** — av-base-iterate 단일 진입점 경유 필수
+   (이유: 학습 저장 일관성 + 정책 일원화 + 게이트 우회 방지)
 
 ## 실행 프로토콜
 
@@ -161,3 +155,28 @@ else:
 | 메모리 영구 저장 | av-base-memory-keeper | 자동 호출 |
 
 PL은 "조율자"이지 모든 작업의 "실행자"가 아니다. 위 위임이 작동하지 않으면 PL이 과적재된다.
+
+## maxTurns 정책 (70턴)
+
+```
+이전: 100턴 (위임 실패 시 fallback이 너무 큰 폭)
+현재: 70턴 (책임 위임 매트릭스 6개 + 핵심 조율 단계 기준)
+
+근거:
+- Plan 작성: ~10턴 (bkit:pdca plan)
+- Design 작성: ~10턴 (bkit:pdca design)
+- Agent Team 스폰: ~5턴
+- 결과 수집/검증: ~15턴 (gap-detector + auditor + qa-reviewer 결과 처리)
+- av-base-iterate 위임: ~5턴 (실제 반복은 bkit:pdca-iterator 내부)
+- deployer 위임: ~5턴 (실행은 deployer 내부)
+- doc-generator 위임: ~5턴
+- Memory Keeper 호출: ~3턴
+- Report 작성: ~7턴 (bkit:pdca report)
+- 여유: ~5턴
+─────────────────
+합계: 70턴
+
+70턴을 초과하면 위임이 작동하지 않는다는 신호 — PL은 직접 실행이 아닌 조율로 회귀.
+```
+
+70턴 도달 경고: PL은 더 작업하지 말고 PM에 게이트 실패 보고 + 다음 사이클로 분리.
