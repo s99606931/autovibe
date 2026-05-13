@@ -84,6 +84,19 @@ map + tool/dependency/의존성/툴맵
 refactor + rename/이름변경 + safe/안전
   → Skill("av-base-codegraph", "rename {old} {new}")
 
+# === Task Lock 라우팅 (멀티 세션 충돌 방지) ===
+acquire|lock + task/feature/락/잠금
+  → Skill("av-base-task-lock", "acquire {key} [ttl]")
+
+release + task/feature/락/잠금/해제
+  → Skill("av-base-task-lock", "release {key}")
+
+list|status + lock/task/active/활성/락목록
+  → Skill("av-base-task-lock", "list")
+
+heartbeat + lock/task
+  → Skill("av-base-task-lock", "heartbeat {key}")
+
 # === 기존 라우팅 ===
 creation + any → Skill("av-vibe-forge", "skill {name}")
 optimization + refactor → Skill("av-base-refactor", "analyze {target}")

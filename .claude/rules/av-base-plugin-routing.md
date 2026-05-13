@@ -121,6 +121,33 @@ bkit의 cto-lead, frontend-architect 등 도메인 에이전트는 av-base-* 에
 
 설치/가동: `wsl-setup/install-gitnexus.sh` → user-scope MCP 자동 등록.
 
+## Task Lock (멀티 세션 충돌 방지)
+
+> 여러 Claude Code 세션이 동일 작업을 동시에 수행하는 충돌 방지.
+> 단일 진입점: `Skill("av-base-task-lock", ...)`. 정책: `.claude/rules/av-base-task-lock.md`.
+
+| 요청 의도 | task-lock 호출 | 담당 | 트리거 |
+|-----------|---------------|------|--------|
+| 작업 시작 전 락 | `Skill("av-base-task-lock", "acquire {key} [ttl]")` | PM, PL, Agent Team Lead | PRD 확정·Agent Team 스폰 직전 |
+| 작업 종료 시 해제 | `Skill("av-base-task-lock", "release {key}")` | PM, PL | Report 직후·SubagentStop |
+| 활성 락 조회 | `Skill("av-base-task-lock", "list")` | 모든 av 에이전트 | 사전 확인 |
+| TTL 갱신 | `Skill("av-base-task-lock", "heartbeat {key}")` | 장기 작업 owner | 4분 주기 |
+| 만료 정리 | `Skill("av-base-task-lock", "prune")` | SessionStart 훅 | 세션 시작 시 자동 |
+
+### Task Lock 자동 트리거 조건
+
+```
+# PM 시작 프로토콜 (PRD 확정 직후)
+key = "feature:" + slug
+acquire(key, ttl=600)   # 충돌 시 AskUserQuestion(대기/강제/취소)
+
+# PL Agent Team 스폰 프로토콜
+key = "domain:" + domain
+acquire(key, ttl=1800)  # 장기 작업 — heartbeat 의무
+
+# UserPromptSubmit 훅이 /av pm 패턴 감지 시 현재 활성 락을 컨텍스트로 주입
+```
+
 ## Claude Code (AI 런타임) — av 실행 기반
 
 | 요청 의도 | Claude Code 기능 | 담당 | 비고 |

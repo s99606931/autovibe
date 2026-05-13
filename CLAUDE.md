@@ -35,6 +35,7 @@
 | `/av-base-post-qa` | QA (gstack E2E + bkit:qa-monitor) |
 | `/av-base-iterate` | 자동 개선 루프 (bkit:pdca-iterator) |
 | `/av-base-codegraph` | GitNexus 코드 그래프 게이트웨이 (impact/context/route-map/rename) |
+| `/av-base-task-lock` | 멀티 세션 작업 락 (acquire/release/status/list) |
 | `/av-base-git-commit` | git 커밋 자동화 |
 
 ### 워크플로우
@@ -53,9 +54,9 @@
 | 유형 | 수량 | 경로 |
 |------|-----:|------|
 | Agents | 13 | `.claude/agents/` |
-| Skills | 18 | `.claude/skills/` |
-| Hooks | 10 | `.claude/hooks/` |
-| Rules | 6 | `.claude/rules/` |
+| Skills | 19 | `.claude/skills/` |
+| Hooks | 12 | `.claude/hooks/` |
+| Rules | 7 | `.claude/rules/` |
 
 ### 외부 플러그인
 

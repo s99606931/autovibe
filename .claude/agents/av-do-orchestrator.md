@@ -90,6 +90,18 @@ ELSE:
 
 ## Agent Team 스폰 프로토콜
 
+**0. 작업 락 사전 획득 (멀티 세션 충돌 방지) — 의무**
+```
+key = "domain:" + domain_name        # 또는 "feature:" + feature_slug
+result = Skill("av-base-task-lock", "acquire " + key + " 1800")
+IF result.conflict:
+  AskUserQuestion("{key}는 다른 세션이 작업 중입니다 (owner: {current_owner})",
+                  [대기, 강제 진행 — 별도 키로 분리, 취소])
+# 장기 작업 — 4분마다 heartbeat
+# 종료 프로토콜에서 release 의무
+```
+상세 정책: `.claude/rules/av-base-task-lock.md`
+
 ```
 1. /av-vibe-forge agent {domain}-lead --group {domain}
 2. /av-vibe-forge agent {domain}-backend --group {domain}
@@ -97,6 +109,7 @@ ELSE:
 4. /av-vibe-forge agent {domain}-qa --group {domain}
 5. Agent 할당 시 파일 충돌 위험이 있는 멤버에는 isolation: worktree 옵션 적용
 6. 구현 완료 → 결과 수집 → 검증
+7. **종료 시 락 해제**: Skill("av-base-task-lock", "release " + key)
 ```
 
 **isolation 기준**: 같은 모듈을 동시 편집하는 팀원이 2명 이상이면 worktree 격리 적용.

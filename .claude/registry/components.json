@@ -1,14 +1,14 @@
 {
   "_meta": {
-    "version": "2.4",
+    "version": "2.5",
     "created": "2026-03-29",
     "updated": "2026-05-13",
     "description": "AutoVibe ecosystem registry",
     "total": {
       "agents": 13,
-      "skills": 18,
-      "hooks": 10,
-      "rules": 6
+      "skills": 19,
+      "hooks": 12,
+      "rules": 7
     }
   },
   "rules": {
@@ -68,6 +68,16 @@
       "file": ".claude/rules/av-base-code-quality-gates.md",
       "status": "active",
       "created": "2026-04-27",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true
+    },
+    "av-base-task-lock": {
+      "group": "base",
+      "version": "1.0",
+      "file": ".claude/rules/av-base-task-lock.md",
+      "status": "active",
+      "created": "2026-05-13",
       "autovibe": true,
       "domain": "base",
       "portable": true
@@ -493,6 +503,16 @@
       "domain": "base",
       "portable": true,
       "description": "GitNexus 코드 그래프 게이트웨이 (impact/context/route-map/rename)"
+    },
+    "av-base-task-lock": {
+      "group": "base",
+      "version": "1.0",
+      "file": ".claude/skills/av-base-task-lock/SKILL.md",
+      "status": "active",
+      "created": "2026-05-13",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true
     }
   },
   "hooks": {
@@ -623,6 +643,28 @@
       "domain": "base",
       "portable": true,
       "description": "plugin drift 트리거 파일 감지 시 sync 권장을 컨텍스트로 자동 주입 (active sync)"
+    },
+    "av-session-id-init": {
+      "group": "base",
+      "version": "1.0",
+      "file": ".claude/hooks/av-session-id-init.sh",
+      "event": "SessionStart",
+      "status": "active",
+      "created": "2026-05-13",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true
+    },
+    "av-pm-team-lock-check": {
+      "group": "base",
+      "version": "1.0",
+      "file": ".claude/hooks/av-pm-team-lock-check.sh",
+      "event": "UserPromptSubmit",
+      "status": "active",
+      "created": "2026-05-13",
+      "autovibe": true,
+      "domain": "base",
+      "portable": true
     }
   }
 }

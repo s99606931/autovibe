@@ -61,8 +61,21 @@ initialPrompt: |
 1. memory: project → MEMORY.md 자동 로드
 2. 기존 PRD/대화 이력 확인
 3. 사용자와 AskUserQuestion 대화 시작
+4. **PRD 확정 직후 작업 락 획득** (멀티 세션 충돌 방지)
+   ```
+   key = "feature:" + feature_slug
+   result = Skill("av-base-task-lock", "acquire " + key + " 600")
+   IF result.conflict:
+     AskUserQuestion("{key}는 다른 세션이 작업 중입니다 (owner: {current_owner})",
+                     [대기, 강제 진행, 취소])
+   ```
+   상세 정책: `.claude/rules/av-base-task-lock.md`
 
 ### 종료 프로토콜
 1. PRD 작성 완료 → bkit:pdca 스킬
 2. PL에게 PRD 전달
 3. MEMORY.md 업데이트 (요구사항 패턴, 도메인 지식)
+4. **작업 락 해제** (의무 — Report 작성 직후)
+   ```
+   Skill("av-base-task-lock", "release feature:" + feature_slug)
+   ```

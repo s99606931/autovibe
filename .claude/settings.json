@@ -14,7 +14,8 @@
             "type": "command",
             "command": "FEATURE=$(echo \"$CLAUDE_USER_PROMPT\" | grep -oP '(?<=/av )\\S+' | head -1); [ -n \"$FEATURE\" ] && echo \"sessionTitle=av:$FEATURE\" || true"
           },
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/av-prompt-sync-trigger.sh" }
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/av-prompt-sync-trigger.sh" },
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/av-pm-team-lock-check.sh" }
         ]
       }
     ],
@@ -30,6 +31,7 @@
       {
         "matcher": "startup|resume",
         "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/av-session-id-init.sh" },
           { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/av-session-discovery.sh" },
           { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/av-plugin-tracker.sh" }
         ]
