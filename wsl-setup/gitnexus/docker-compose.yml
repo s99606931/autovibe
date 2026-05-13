@@ -29,7 +29,8 @@ services:
       GITNEXUS_SKIP_OPTIONAL_GRAMMARS: "1"
       GITNEXUS_WORKER_SUB_BATCH_TIMEOUT_MS: "60000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4747/api/health || exit 1"]
+      # NOTE: 이미지에 wget이 없어 curl 사용. node fetch도 가능하나 curl이 더 가벼움.
+      test: ["CMD-SHELL", "curl -fsS http://localhost:4747/api/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
