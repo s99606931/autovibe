@@ -4,14 +4,16 @@
 > 파일 복사 없이, 대화만으로 나만의 AI 에이전트 생태계를 만드세요.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Claude Code](https://img.shields.io/badge/Claude_Code-v2.1.71+-blue)](https://claude.ai/code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-v2.2+_Opus_4.7-blue)](https://claude.ai/code)
 [![bkit](https://img.shields.io/badge/bkit-PDCA_Plugin-green)](#사전-요구사항)
+[![gstack](https://img.shields.io/badge/gstack-Browser_QA-orange)](https://github.com/garrytan/gstack)
+[![GitNexus](https://img.shields.io/badge/GitNexus-Code_Graph_MCP-purple)](https://github.com/abhigyanpatwari/GitNexus)
 
 ---
 
 ## AutoVibe란?
 
-AutoVibe는 **Claude Code + bkit PDCA** 위에서 동작하는 AI 에이전트 생태계 프레임워크입니다.
+AutoVibe는 **4축 생태계 — Claude Code(AI) + gstack(Browser) + bkit(PDCA) + GitNexus(Code Graph)** 를 `/av {자연어}` 하나로 통합하는 AI 에이전트 프레임워크입니다.
 
 기존 방식은 설정 파일을 복사하고 수작업으로 설정을 맞추는 번거로운 작업이 필요했습니다.
 AutoVibe는 다릅니다. **사용자와 Claude의 대화**를 통해 프로젝트에 꼭 맞는 생태계가 점진적으로 성장합니다.
@@ -258,22 +260,36 @@ av-{도메인}-{이름}
 ```
 autovibe/
 ├── README.md                                    ← 이 문서
+├── CLAUDE.md                                    ← Claude Code 프로젝트 룰 인덱스
 ├── LICENSE                                      ← MIT 라이선스
 ├── CONTRIBUTING.md                              ← 기여 가이드
+├── wsl-setup/                                   ← 신규 환경 자동 구축
+│   ├── setup.sh                                 ← 0~9단계 전체 자동 설치 (gstack/GitNexus 포함)
+│   ├── install-gitnexus.sh                      ← GitNexus 독립 설치 (compose + MCP 등록)
+│   └── gitnexus/docker-compose.yml              ← GitNexus 컴포즈 스택
+├── .claude/                                     ← AutoVibe 컴포넌트 (생성 산출물)
+│   ├── rules/                                   ← av-base-* 규칙 6종
+│   ├── agents/                                  ← av- 에이전트 13종
+│   ├── skills/                                  ← av- 스킬 18종
+│   ├── hooks/                                   ← 자동화 훅 10종
+│   └── registry/components.json                 ← 컴포넌트 레지스트리
 ├── docs/
-│   ├── prd/
-│   │   └── av-ecosystem-pdca-driven.prd.md      ← 요구사항 정의서
-│   ├── plan/
-│   │   └── av-ecosystem-pdca-driven-*.md        ← PDCA Phase 계획서
-│   └── design/
-│       └── av-ecosystem-design-spec.md           ← 완전 구현 명세서
+│   ├── prd/av-ecosystem-pdca-driven.prd.md      ← 요구사항 정의서
+│   ├── plan/av-ecosystem-pdca-driven-*.md       ← PDCA Phase 계획서
+│   └── design/av-ecosystem-design-spec.md        ← 완전 구현 명세서
 └── guides/
-    ├── getting-started.md                       ← Phase별 단계 가이드
-    ├── quick-start-30min.md                     ← 30분 퀵스타트 타임라인
-    ├── naming-guide.md                          ← 컴포넌트 네이밍 완전 가이드
-    ├── phase-progression.md                     ← Phase GO/NO-GO 기준 및 롤백
-    ├── bkit-integration.md                      ← bkit 플러그인 연동 가이드
-    └── cc-official-docs.md                      ← Claude Code 공식 문서 참조
+    ├── README.md                                ← 가이드 목차
+    ├── 00-WSL-환경설정.md                       ← WSL + 4축 자동 설치
+    ├── 01-퀵스타트-30분.md                      ← 30분 퀵스타트 타임라인
+    ├── 02-설계-철학.md                          ← Talk-First, PDCA, 점진적 성장
+    ├── 03-아키텍처.md                           ← 4-Layer 구조
+    ├── 04-시작-가이드.md                        ← Phase 0~6 단계별 구축
+    ├── 05-컴포넌트-레퍼런스.md                  ← Rule·Agent·Skill·Hook 명세
+    ├── 06-워크플로우-예제.md                    ← 실전 대화 시나리오 6종
+    ├── 07-AI-바이브코딩.md                      ← 구축/사용/유지관리 종합
+    ├── 08-프로젝트-이전.md                      ← 신규 프로젝트 적용 3가지 전략
+    ├── 09-유지보수.md                           ← 건강도·최적화·백업
+    └── 10-문제-해결.md                          ← 증상별 트러블슈팅
 ```
 
 ---
@@ -282,43 +298,84 @@ autovibe/
 
 ### 사전 요구사항
 
-| 도구 | 버전 | 확인 방법 |
-|------|------|---------|
-| Claude Code CLI | v2.1.71+ | `claude --version` |
-| bkit 플러그인 | 최신 | `/bkit` (Claude Code 내) |
-| git | 2.x+ | `git --version` |
+| 도구 | 버전 | 확인 방법 | 비고 |
+|------|------|---------|------|
+| WSL 2 + Ubuntu | 24.04 LTS | `wsl --version` (PowerShell) | Windows 사용자 |
+| Claude Code CLI | v2.2+ (Opus 4.7, 1M context) | `claude --version` | Pro/Max/Teams/Enterprise 계정 |
+| Node.js | 24.x | `node -v` | gstack/GitNexus 의존 |
+| Docker + Compose | 28.x | `docker --version` | GitNexus 의존 |
+| bkit 플러그인 | v2.1.13+ | `/bkit` (Claude Code 내) | PDCA·문서·분석 |
+| gstack 스킬팩 | latest | `/gstack` (Claude Code 내) | Browser QA |
+| GitNexus MCP | latest | `claude mcp list` → `gitnexus ✓ Connected` | Code Graph |
+| git | 2.x+ | `git --version` | — |
 
-### 30분 빠른 시작
+> Windows에서 처음 시작한다면 [guides/00-WSL-환경설정.md](guides/00-WSL-환경설정.md) 가 위 모든 항목을 자동 설치합니다.
 
-AutoVibe는 **파일 복사 없이 대화로** 시작합니다.
+### 30분 빠른 시작 — Clone 부터 적용까지
 
-**Step 1: AutoVibe 저장소를 클론**
+AutoVibe는 **파일 복사 없이 대화로** 시작합니다. 신규 사용자 전체 흐름:
+
+**Step 1: 저장소 clone**
 
 ```bash
-git clone https://github.com/s99606931/autovibe.git
-cd my-project   # 내 프로젝트 디렉토리로 이동
-claude          # Claude Code 실행
+git clone https://github.com/s99606931/autovibe.git ~/autovibe
+cd ~/autovibe
 ```
 
-**Step 2: Claude에게 한 마디**
+**Step 2: 환경 자동 구축 (WSL Ubuntu 24.04 신규 환경)**
+
+```bash
+chmod +x wsl-setup/setup.sh
+./wsl-setup/setup.sh
+```
+
+setup.sh 가 자동으로 설치하는 것:
+- Node.js 24 / Docker / Python / Ruff / uv / git 설정
+- **Claude Code** (Native Install) + Gemini CLI
+- **gstack** (29개 슬래시 명령 + Chromium)
+- **GitNexus** (docker compose + user-scope MCP 등록)
+- bkit 설치 안내 (Claude Code 내 `/plugin install bkit` — 자동화 불가)
+
+이미 환경이 있다면 누락된 단계만 실행해도 됩니다. 자세한 절차: [guides/00-WSL-환경설정.md](guides/00-WSL-환경설정.md)
+
+**Step 3: 내 프로젝트에 AutoVibe 적용**
+
+```bash
+cd ~/my-project    # 새 프로젝트 디렉토리
+claude
+```
+
+Claude Code 안에서:
+
+```
+/av-vibe-portable-init
+```
+
+또는 자유 대화:
 
 ```
 AutoVibe 생태계를 구축하고 싶어. Phase 0부터 시작해줘.
+~/autovibe/docs/design/av-ecosystem-design-spec.md 를 참고해서.
 ```
 
-Claude가 자동으로:
-- 프로젝트 이름, 기술 스택, 도메인을 물어봅니다
-- `.claude/` 디렉토리 구조를 생성합니다
-- 단계별로 안내합니다
+Claude가 자동으로 프로젝트 이름·기술 스택·도메인을 물어보고 `.claude/` 구조를 만듭니다.
 
-> 30분 안에 Phase 0 완료를 목표로 합니다.
->
+**Step 4: 자연어 한 줄로 사용**
+
+```
+/av 주문 환불 기능 추가해줘
+```
+
+→ PM 대화 → PRD → Plan/Design → Agent Team 스폰 → 구현 → gstack E2E → bkit gap-detector → 자동 개선 → 최종 보고.
+
 > | 가이드 | 설명 |
 > |--------|------|
-> | [quick-start-30min.md](guides/quick-start-30min.md) | 분 단위 타임라인 퀵스타트 |
-> | [getting-started.md](guides/getting-started.md) | Phase별 단계 상세 가이드 |
-> | [naming-guide.md](guides/naming-guide.md) | 컴포넌트 네이밍 완전 가이드 |
-> | [phase-progression.md](guides/phase-progression.md) | Phase GO/NO-GO 기준 및 롤백 |
+> | [guides/00-WSL-환경설정.md](guides/00-WSL-환경설정.md) | Windows WSL + 전체 환경 자동 구축 |
+> | [guides/01-퀵스타트-30분.md](guides/01-퀵스타트-30분.md) | 분 단위 타임라인 퀵스타트 |
+> | [guides/04-시작-가이드.md](guides/04-시작-가이드.md) | Phase 0~6 단계별 구축 상세 |
+> | [guides/05-컴포넌트-레퍼런스.md](guides/05-컴포넌트-레퍼런스.md) | Rule·Agent·Skill·Hook 명세 |
+> | [guides/06-워크플로우-예제.md](guides/06-워크플로우-예제.md) | 실전 대화 시나리오 6종 |
+> | [guides/08-프로젝트-이전.md](guides/08-프로젝트-이전.md) | 신규 프로젝트에 적용하는 3가지 전략 |
 
 ---
 
@@ -352,8 +409,10 @@ MIT License — [LICENSE](LICENSE) 참조
 
 ---
 
-## 기반 기술
+## 기반 기술 (4축)
 
-- [Claude Code](https://claude.ai/code) by Anthropic
-- [bkit](https://github.com/anthropics/claude-code) PDCA 플러그인
+- [Claude Code](https://claude.ai/code) by Anthropic — AI 런타임 엔진 (Opus 4.7, 1M context)
+- [gstack](https://github.com/garrytan/gstack) by Garry Tan — Fast Headless Browser 스킬팩 (29개 명령)
+- [bkit](https://github.com/popup-studio-ai/bkit-claude-code) by popup-studio-ai — Vibecoding Kit PDCA 플러그인
+- [GitNexus](https://github.com/abhigyanpatwari/GitNexus) by abhigyanpatwari — 공유 코드 그래프 MCP
 - PDCA 방법론 (Plan-Do-Check-Act)

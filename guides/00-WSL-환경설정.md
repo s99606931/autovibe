@@ -1,8 +1,16 @@
 # 00. WSL 바이브코딩 환경 설정 가이드
 
-> **대상**: Windows 11 사용자 (WSL 미설치 포함)
-> **결과**: WSL Ubuntu 24.04 + Claude Code + bkit 개발환경 완성
-> **소요 시간**: 20~30분
+> **대상**: Windows 11 사용자 (WSL 미설치 포함) · 이미 WSL이 있다면 Step 1을 건너뛰세요.
+> **결과**: WSL Ubuntu 24.04 + Claude Code(Opus 4.7) + gstack + bkit + GitNexus — **4축 생태계 완성**
+> **소요 시간**: 20~30분 (네트워크 속도 의존)
+
+> AutoVibe는 4축으로 동작합니다.
+> | 축 | 정체성 | 본 가이드 설치 위치 |
+> |----|--------|------|
+> | **Claude Code** | AI 런타임 (Opus 4.7, 1M context) | Step 4 (setup.sh) |
+> | **gstack** | Fast Headless Browser (29개 명령) | Step 4 (setup.sh) |
+> | **bkit** | Vibecoding Kit PDCA 플러그인 | Step 5 (Claude Code 내) |
+> | **GitNexus** | 공유 코드 그래프 MCP | Step 4 (setup.sh) |
 
 ---
 
@@ -10,13 +18,14 @@
 
 ```mermaid
 flowchart LR
-    A["1. WSL 설치<br/>Ubuntu 24.04"] --> B["2. setup.sh 실행<br/>자동 환경 설정"]
-    B --> C["3. Claude Code 로그인<br/>계정 인증"]
-    C --> D["4. bkit 설치<br/>플러그인 등록"]
-    D --> E["5. 바이브코딩 시작<br/>AutoVibe 구축"]
+    A["1. WSL 설치<br/>Ubuntu 24.04"] --> B["2. autovibe clone<br/>git clone"]
+    B --> C["3. setup.sh 실행<br/>4축 자동 설치"]
+    C --> D["4. Claude Code 로그인<br/>계정 인증"]
+    D --> E["5. bkit 설치<br/>/plugin install bkit"]
+    E --> F["6. /av 사용 시작<br/>자연어 명령"]
 
     style A fill:#2d6a4f,color:#fff
-    style E fill:#1d3557,color:#fff
+    style F fill:#1d3557,color:#fff
 ```
 
 ---
@@ -68,9 +77,20 @@ sequenceDiagram
 
 ---
 
-## 3. 자동 환경 설정 (setup.sh)
+## 3. autovibe 저장소 clone
 
-Ubuntu 터미널에서:
+```bash
+sudo mkdir -p /data && sudo chown $USER:$USER /data
+cd /data
+git clone https://github.com/s99606931/autovibe.git
+cd autovibe
+```
+
+> 다른 경로에 clone 해도 OK. setup.sh는 자기 디렉토리 기준으로 동작합니다.
+
+---
+
+## 4. 자동 환경 설정 (setup.sh)
 
 ```bash
 cd /data/autovibe/wsl-setup
@@ -82,19 +102,26 @@ chmod +x setup.sh
 
 ```mermaid
 flowchart TD
-    S0["단계 0: 환경 확인<br/>WSL + Ubuntu 24.04 + systemd"]
-    S1["단계 1: 시스템 업데이트<br/>apt update & upgrade"]
-    S2["단계 2: sudo 설정<br/>비밀번호 생략"]
-    S3["단계 3: 로케일<br/>한국어 + 서울 시간대"]
-    S4["단계 4: 필수 패키지<br/>build-essential, git, jq,<br/>Python 3.12, Ruff, uv"]
-    S5["단계 5: Node.js 24.x<br/>+ pnpm"]
-    S6["단계 6: Docker Engine<br/>+ Docker Compose"]
-    S7["단계 7: /data 디렉토리<br/>생성 및 소유권"]
-    S8["단계 8: AI 도구<br/>Claude Code + Gemini CLI<br/>+ bkit 안내"]
-    S9["단계 9: Git 전역 설정<br/>user.name, email 등"]
+    S0["0. 환경 확인<br/>WSL + Ubuntu 24.04 + systemd"]
+    S1["1. 시스템 업데이트"]
+    S2["2. sudo 무비번"]
+    S3["3. 한국어 + 서울 시간대"]
+    S4["4. 필수 패키지<br/>git/jq/Python/Ruff/uv/bubblewrap"]
+    S5["5. Node.js 24.x + pnpm"]
+    S6["6. Docker Engine + Compose"]
+    S7["7. /data 디렉토리"]
+    S81["8-1. Claude Code<br/>(Native install, Opus 4.7)"]
+    S82["8-2. Gemini CLI (선택)"]
+    S83["8-3. bkit 설치 안내"]
+    S84["8-4. gstack<br/>29개 슬래시 명령 + Chromium"]
+    S85["8-5. GitNexus<br/>compose + user-scope MCP 등록"]
+    S9["9. Git 전역 설정"]
 
-    S0 --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9
+    S0 --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7
+    S7 --> S81 --> S82 --> S83 --> S84 --> S85 --> S9
 ```
+
+> **재실행 안전**: 이미 설치된 항목은 자동 감지하여 건너뜁니다. 일부 실패 시 해당 단계만 수동 재실행 가능 (`bash wsl-setup/install-gitnexus.sh` 등).
 
 설치 완료 후 Docker 그룹 적용:
 ```bash
@@ -104,7 +131,7 @@ newgrp docker
 
 ---
 
-## 4. Claude Code 로그인
+## 5. Claude Code 로그인
 
 ```bash
 source ~/.bashrc   # PATH 반영
@@ -128,13 +155,14 @@ sequenceDiagram
 > **WSL에서 브라우저가 안 열리면**: 터미널에 출력된 URL을 Windows 브라우저에 직접 붙여넣으세요.
 
 ```bash
-claude --version   # 버전 확인 (v2.1.71 이상)
+claude --version   # 버전 확인 (v2.2+ 권장 — Opus 4.7 / 1M context / deferred tools)
 claude doctor      # 환경 진단
+claude mcp list    # gitnexus ✓ Connected 확인
 ```
 
 ---
 
-## 5. bkit 플러그인 설치
+## 6. bkit 플러그인 설치
 
 bkit은 Claude Code 내부 명령어로만 설치 가능합니다.
 
@@ -158,16 +186,42 @@ claude
 
 bkit 메뉴가 표시되면 설치 성공입니다.
 
----
-
-## 6. 바이브코딩 시작
+### 4축 설치 검증 (한 번에 확인)
 
 ```bash
-cd /data/your-project
+claude doctor                            # Claude Code 환경 OK
+claude mcp list | grep gitnexus          # gitnexus ✓ Connected
+ls ~/.claude/skills/gstack/SKILL.md      # gstack 설치 확인
+# Claude Code 안에서:
+#   /bkit       → bkit 메뉴
+#   /gstack     → gstack 메뉴
+#   /av         → AutoVibe 마스터 게이트웨이
+```
+
+---
+
+## 7. 바이브코딩 시작
+
+기존 프로젝트에 AutoVibe를 적용하려면:
+
+```bash
+cd /data/my-project        # 내 프로젝트
 claude
 ```
 
-AutoVibe 생태계 구축을 시작하려면: [01-퀵스타트-30분.md](01-퀵스타트-30분.md)
+Claude Code 안에서 자연어 한 줄:
+
+```
+/av-vibe-portable-init     # 원클릭 자동 구축 (추천)
+```
+
+또는:
+
+```
+/av AutoVibe 생태계 구축해줘. Phase 0부터 시작.
+```
+
+상세 단계별 가이드: [01-퀵스타트-30분.md](01-퀵스타트-30분.md) · [08-프로젝트-이전.md](08-프로젝트-이전.md)
 
 ---
 

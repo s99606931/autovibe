@@ -18,9 +18,14 @@ ehthumbs.db
 # ─── Claude Code — 런타임/세션 파일 (커밋 불필요) ────────────────────────────
 .claude/logs/
 .claude/agent-memory/
+.claude/state/
 # 세션 트랜스크립트 및 임시 분석 파일
 .claude/**/*.transcript.json
 .claude/**/*.session.json
+
+# ─── 외부 플러그인이 자동 설치한 스킬 (사용자 환경마다 다름, 커밋 불필요) ──
+# gitnexus MCP가 자동으로 깐 도우미 스킬 — 머신마다 다름
+.claude/skills/gitnexus/
 
 # ─── bkit — 런타임 상태 (커밋 불필요) ───────────────────────────────────────
 # pdca-status.json, memory.json 등 로컬 세션 상태

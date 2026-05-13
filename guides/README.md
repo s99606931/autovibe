@@ -5,7 +5,23 @@
 
 ## AutoVibe 한 줄 요약
 
-**Claude Code**(AI 런타임) + **gstack**(브라우저 테스트) + **bkit**(문서·분석) 3축을 `/av {자연어}` 하나로 통합하는 AI 개발 생태계입니다.
+**Claude Code**(AI 런타임, Opus 4.7) + **gstack**(브라우저 테스트) + **bkit**(문서·분석) + **GitNexus**(공유 코드 그래프 MCP) 4축을 `/av {자연어}` 하나로 통합하는 AI 개발 생태계입니다.
+
+## Clone 받은 직후 가장 빠른 경로
+
+```bash
+git clone https://github.com/s99606931/autovibe.git ~/autovibe
+cd ~/autovibe && ./wsl-setup/setup.sh              # 4축 자동 설치 (WSL Ubuntu 24.04)
+# Claude Code 안에서:
+#   /plugin marketplace add popup-studio-ai/bkit-claude-code
+#   /plugin install bkit
+# 내 프로젝트 디렉토리에서:
+cd ~/my-project && claude
+#   /av-vibe-portable-init                          # 원클릭 자동 구축
+#   /av {자연어}                                    # 사용 시작
+```
+
+상세: [00-WSL-환경설정.md](00-WSL-환경설정.md) → [08-프로젝트-이전.md](08-프로젝트-이전.md)
 
 ---
 
