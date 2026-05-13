@@ -1,9 +1,9 @@
 ---
 name: av-base-spec
 autovibe: true
-version: "2.1"
+version: "2.2"
 created: "2026-03-29"
-updated: "2026-04-27"
+updated: "2026-05-13"
 group: base
 paths:
   - ".claude/agents/**"
@@ -41,6 +41,8 @@ paths:
 
 **표기 원칙** (CC v2.1.63+): `Agent(...)` 사용. `Task(...)`는 별칭으로 동작하나 **신규 작성 금지**.
 
+⚠️ **혼동 주의** (CC v2.2+): `TaskCreate / TaskList / TaskUpdate`는 **별개의 todo 관리 도구**. 에이전트 스폰과 무관하다.
+
 ## Topic Index
 
 > Frontmatter/Naming/Protocols/Audit 상세는 위 Quick Reference에 요약. 별도 토픽 문서는 v2.1에서 통합 제거.
@@ -54,6 +56,6 @@ paths:
 
 ## Stats
 
-- spec: v2.1 | created: 2026-03-29 | updated: 2026-04-27 (5차 PDCA: 표 중복 통합)
+- spec: v2.2 | created: 2026-03-29 | updated: 2026-05-13 (6차 PDCA: CC v2.2 통합)
 - registry: `.claude/registry/components.json`
-- 품질 점수: gap 99.5% / code 100점 ⭐⭐
+- 품질 점수: gap 99.5% / code 100점 ⭐⭐ (5차 기준선, 6차 측정 예정)

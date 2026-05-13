@@ -36,3 +36,21 @@ agent: general-purpose
 2. `Skill("gstack", "interact {forms}")` — 인터랙션 테스트
 3. `Skill("gstack", "tab-each check-errors")` — 멀티탭 병렬 오류 스캔 (gstack v1.15)
 4. `Skill("benchmark", "$1")` — 성능 기준선 측정
+
+## 비동기 실행 (CC v2.2+)
+
+긴 E2E 시나리오나 멀티탭 스캔은 `run_in_background`로 띄우고 `Monitor`로 관찰:
+
+```python
+# 장기 작업 비동기 실행
+job_id = Skill("gstack", "check-errors $1", { "run_in_background": True })
+
+# 이벤트 스트림 관찰 (sleep loop 금지)
+Monitor(job_id, until="completion")
+
+# 자동 개선 트리거도 비동기로
+iter_job = Agent("bkit:pdca-iterator", { feature: "$1" }, { "run_in_background": True })
+Monitor(iter_job)
+```
+
+**환경 의존성**: CC v2.2 미가용 시 동기 실행으로 fallback (기존 동작 유지).

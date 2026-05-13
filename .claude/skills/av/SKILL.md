@@ -2,9 +2,9 @@
 name: av
 description: |
   AutoVibe 마스터 게이트웨이. 자연어 요청 → 최적 컴포넌트 자동 선정 → 위임 실행.
-  PM/PL 조직 라우팅 + gstack(실행·테스트) + bkit(문서) 통합.
+  PM/PL 조직 라우팅 + gstack(실행·테스트) + bkit(문서) + GitNexus(코드 그래프) 통합.
 autovibe: true
-version: "2.0"
+version: "2.1"
 created: "2026-03-29"
 group: base
 argument-hint: "run|find|optimize|health|stats [args]"
@@ -61,6 +61,28 @@ analyze + code/security/quality/품질/보안
 
 analyze + runtime/logs/로그/런타임
   → Agent("bkit:qa-monitor", ...)
+
+# === GitNexus 라우팅 (코드 그래프 — codegraph 스킬 경유) ===
+analyze + impact/영향/임팩트
+  → Skill("av-base-codegraph", "impact {file|symbol}")
+
+analyze + api/endpoint/엔드포인트 + impact/영향
+  → Skill("av-base-codegraph", "api-impact {endpoint}")
+
+search + symbol/code/심볼/코드 + (자연어 패턴)
+  → Skill("av-base-codegraph", "query {pattern}")
+
+context + symbol/file/심볼/컨텍스트
+  → Skill("av-base-codegraph", "context {symbol|file}")
+
+map + route/architecture/라우트/아키텍처
+  → Skill("av-base-codegraph", "route-map [scope]")
+
+map + tool/dependency/의존성/툴맵
+  → Skill("av-base-codegraph", "tool-map [scope]")
+
+refactor + rename/이름변경 + safe/안전
+  → Skill("av-base-codegraph", "rename {old} {new}")
 
 # === 기존 라우팅 ===
 creation + any → Skill("av-vibe-forge", "skill {name}")

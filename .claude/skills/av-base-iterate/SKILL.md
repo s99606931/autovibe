@@ -142,3 +142,21 @@ Skill("av-base-iterate", { feature: "{feature}", "--max": 1 })
 - av-do-orchestrator 검증 프로토콜 변경
 - av-base-qa-reviewer QA 실패 처리 변경
 - Memory Keeper iteration_record 스키마 변경
+
+## 비동기 실행 (CC v2.2+)
+
+pdca-iterator는 1회 호출당 5~15분 소요 가능. CC v2.2+ 환경에서는 `run_in_background` + `Monitor` 패턴 권장:
+
+```python
+# 비동기 호출
+job_id = Agent("bkit:pdca-iterator", {
+    "feature": "$1",
+    "target_match_rate": target,
+    "max_iterations": max_iter
+}, { "run_in_background": True })
+
+# 이벤트 스트림 관찰 (sleep loop 금지)
+result = Monitor(job_id, until="completion")
+```
+
+**환경 의존성**: CC v2.2 미가용 시 기존 동기 호출로 fallback. 학습 저장 흐름은 변경 없음.

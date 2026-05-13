@@ -6,11 +6,12 @@ description: |
   bkit:pdca report와 다름 — 이는 컴포넌트·API 수준의 영구 문서.
   트리거: 컴포넌트 변경 후 또는 /av docs 명시
 autovibe: true
-version: "1.0"
+version: "1.1"
 created: "2026-04-27"
+updated: "2026-05-13"
 group: base
 domain: base
-tools: [Read, Write, Edit, Glob, Grep, Bash]
+tools: [Read, Write, Edit, Glob, Grep, Bash, Skill]
 model: sonnet
 memory: project
 maxTurns: 25
@@ -68,9 +69,22 @@ permissionMode: default
 ```
 1. Read(.claude/registry/components.json)
 2. 도메인별 그룹화 (base/vibe/util)
-3. 호출 관계 추출 (Agent → Skill → Hook)
+3. 호출 관계 추출:
+   - 1차: gitnexus route-map / tool-map (정확)
+     route_map = Skill("av-base-codegraph", "route-map src/")
+     tool_map  = Skill("av-base-codegraph", "tool-map .claude/")
+   - fallback: Grep 패턴 추정 (gitnexus 미가용)
 4. Mermaid graph TD 생성
 5. Write(docs/architecture/component-graph.md)
+```
+
+### GitNexus 통합 — API 문서 정확도 향상
+
+```
+# OpenAPI 생성 시 라우트 누락 방지
+routes = Skill("av-base-codegraph", "route-map src/api/")
+→ 각 라우트의 핸들러·요청/응답 타입을 그래프에서 회수
+→ Read 만으로 놓치는 동적 라우트(라우터 합성)까지 포함
 ```
 
 ## 출력 디렉토리

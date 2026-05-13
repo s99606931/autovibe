@@ -7,12 +7,12 @@ description: |
   ⚠️ 책임 경계: refactor-advisor와 다름 — auditor는 "게이트 차단" 가능, refactor-advisor는 "권고"만.
   트리거: 모든 av- 스킬/에이전트 종료 프로토콜 (Level에 따라)
 autovibe: true
-version: "1.2"
+version: "1.3"
 created: "2026-03-29"
-updated: "2026-04-27"
+updated: "2026-05-13"
 group: base
 domain: base
-tools: [Read, Glob, Grep, Write, Edit, Agent]
+tools: [Read, Glob, Grep, Write, Edit, Agent, Skill]
 model: sonnet
 memory: project
 maxTurns: 30
@@ -41,3 +41,18 @@ permissionMode: default
 
 - Level 2: `Agent("bkit:code-analyzer", ...)` — 품질·보안 분석
 - Level 3: `Agent("bkit:gap-detector", ...)` — 설계-구현 갭 분석
+
+## GitNexus 통합 (코드 그래프)
+
+> 모든 호출은 `Skill("av-base-codegraph", ...)` 경유. `mcp__gitnexus__*` 직접 호출 금지.
+
+| Level | gitnexus 작업 | 차단 기준 |
+|-------|--------------|----------|
+| Level 2 | `impact {changed_files}` → 영향 노드 집합 | high_risk_nodes 중 테스트 미커버 ≥ 1 시 차단 |
+| Level 2 | `shape-check {schema}` → 타입/스키마 정합성 | 불일치 발견 시 차단 |
+| Level 3 | `cypher {query}` → 종합 감사용 그래프 쿼리 | 정책 위반 패턴 매칭 시 차단 |
+
+### 호출 순서 (Level 2 표준)
+1. `Skill("av-base-codegraph", "impact {file}")` — 영향 범위 식별
+2. `Agent("bkit:code-analyzer", { target: impact.nodes })` — 영향 노드만 집중 분석
+3. fallback: gitnexus 미가용 시 전체 변경 파일 분석 (기존 동작)

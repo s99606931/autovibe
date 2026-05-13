@@ -7,9 +7,9 @@ description: |
   bkit으로 문서를 관리하고 bkit:gap-detector로 구현을 검증한다.
   트리거: PM이 PRD 전달 시 또는 /av run에서 PL 라우팅
 autovibe: true
-version: "2.1"
+version: "2.2"
 created: "2026-03-29"
-updated: "2026-04-27"
+updated: "2026-05-13"
 group: base
 domain: base
 tools: [Read, Write, Edit, Glob, Grep, Bash, Agent, Skill]
@@ -50,6 +50,44 @@ initialPrompt: |
 | Ship | `Skill("canary", ...)` — 카나리 모니터링 |
 | Reflect | `Skill("benchmark", ...)` — 성능 기준선 |
 
+## GitNexus 활용 (코드 그래프 — 구조 분석)
+
+> 모든 호출은 `Skill("av-base-codegraph", ...)` 경유. `mcp__gitnexus__*` 직접 호출 금지.
+
+| 단계 | codegraph 호출 | 목적 |
+|------|---------------|------|
+| Plan/Design | `route-map [scope]` | 기존 라우트 토폴로지 파악 → Design 문서에 반영 |
+| Plan/Design | `tool-map [scope]` | 의존 모듈 식별 → 영향 범위 사전 평가 |
+| Build (구현 직후) | `impact {changed_files}` | 변경 영향 노드 — auditor에 위임 인자로 전달 |
+| Build (API 변경) | `api-impact {endpoint}` | API 소비처 자동 식별 → 호환성 검토 |
+| Check (게이트 전) | `shape-check {schema}` | 타입/스키마 정합성 사전 확인 |
+
+### Plan 단계 추가 프로토콜
+
+```
+1. existing_routes = Skill("av-base-codegraph", "route-map src/")
+2. existing_tools = Skill("av-base-codegraph", "tool-map src/")
+3. Plan 작성 시 위 결과를 "기존 아키텍처 컨텍스트" 섹션으로 포함
+4. Design 작성 시 신규 라우트/툴이 기존과 충돌하는지 확인
+```
+
+### Build 후 검증 게이트 보강
+
+```
+# 기존 Match Rate 게이트와 병행 실행
+impact = Skill("av-base-codegraph", "impact {feature_files}")
+IF impact.high_risk_nodes:
+  Agent("av-base-auditor", { level: 2, focus: impact.high_risk_nodes })
+ELSE:
+  Agent("av-base-auditor", { level: 2 })  # 전체 변경 파일
+```
+
+### fallback (gitnexus 미가용)
+
+- `route-map` → Grep `router\.|app\.(get|post|put|delete)` 패턴
+- `impact` → Git diff + Grep로 직접 참조 추정
+- 결과 보고에 `source: fallback` 명시
+
 ## Agent Team 스폰 프로토콜
 
 ```
@@ -63,6 +101,32 @@ initialPrompt: |
 
 **isolation 기준**: 같은 모듈을 동시 편집하는 팀원이 2명 이상이면 worktree 격리 적용.
 - 예: backend + frontend가 `src/api/` 공유 시 → 각자 worktree 분리
+
+## TeamCreate + Monitor 워크플로우 (CC v2.2+)
+
+> 기존 `/av-vibe-forge agent` 스폰의 표준화 버전. CC v2.2+ 환경에서 우선 사용.
+
+```python
+# 1) Team 표준 스폰 (TeamCreate)
+team = TeamCreate({
+    "name": "{domain}-team",
+    "members": [Lead, RulesEditor, FrontmatterAuditor, MemoryBootstrap, QA],
+    "isolation": "worktree"  # 파일 충돌 우려 시 (자동 EnterWorktree)
+})
+
+# 2) 장기 작업은 비동기 + 이벤트 스트림 관찰 (sleep loop 금지)
+job_id = Agent("{member}", { ... }, { "run_in_background": True })
+Monitor(job_id, until="completion")
+
+# 3) 추가 지시는 SendMessage로 컨텍스트 유지 (Agent 재호출 비용 절감)
+SendMessage(team.members.lead, "rules 갱신을 우선순위로 처리해줘")
+
+# 4) 작업 종료 시 정리
+TeamDelete(team.id)
+```
+
+**환경 의존성**: CC v2.2 미가용 시 fallback — 개별 `Agent(...)` 직렬 호출 + `git worktree add` Bash.
+**Critical**: `TaskCreate / TaskList / TaskUpdate`는 **별개의 todo 관리 도구**. 에이전트 스폰에 사용 금지.
 
 ## 검증 프로토콜 (자동 Match Rate 게이트) — **MANDATORY**
 
