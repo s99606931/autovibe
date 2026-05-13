@@ -87,7 +87,7 @@ check_environment() {
     fi
 
     # systemd 활성화 확인 (Ubuntu 24.04 WSL 권장)
-    if ! systemctl is-system-running &>/dev/null 2>&1; then
+    if ! systemctl is-system-running &>/dev/null; then
         log_warn "systemd가 비활성화되어 있습니다. Docker 서비스 관리에 영향을 줄 수 있습니다."
         log_info "systemd 활성화 방법:"
         echo "   sudo tee /etc/wsl.conf << 'EOF'"
@@ -278,7 +278,7 @@ $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
     sudo usermod -aG docker "$USER"
 
     log_info "Docker 서비스 시작 중..."
-    if systemctl is-system-running &>/dev/null 2>&1; then
+    if systemctl is-system-running &>/dev/null; then
         sudo systemctl start docker
         sudo systemctl enable docker
         log_success "Docker 서비스 시작 완료 (systemd)"
@@ -358,6 +358,19 @@ setup_claude_code() {
         log_warn "alias cc 이미 설정되어 있습니다."
     fi
 
+    # .bash_profile이 .bashrc를 소싱하지 않는 경우 추가
+    # WSL은 로그인 셸로 시작하여 .bash_profile만 읽고 .bashrc를 건너뜀.
+    # .bash_profile이 .bashrc를 소싱하지 않으면 alias cc 등 모든 bashrc 설정이 미적용됨.
+    if [ -f ~/.bash_profile ] && ! grep -q '\.bashrc' ~/.bash_profile 2>/dev/null; then
+        printf '\n# .bashrc 소싱 (로그인 셸에서 alias·환경변수 적용)\n[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"\n' >> ~/.bash_profile
+        log_success ".bash_profile → .bashrc 소싱 추가 완료 (cc alias 로그인 셸 적용)"
+    elif [ ! -f ~/.bash_profile ]; then
+        # .bash_profile 없으면 .profile이 .bashrc 소싱 — 정상
+        log_info ".bash_profile 없음 — .profile 경유 .bashrc 자동 소싱됨"
+    else
+        log_warn ".bash_profile 이미 .bashrc 소싱 중 — 정상"
+    fi
+
     echo ""
     log_info "Claude Code 첫 실행:"
     echo "   source ~/.bashrc"
@@ -383,7 +396,12 @@ setup_gemini_cli() {
     echo ""
 
     if command -v gemini &>/dev/null; then
-        log_warn "이미 설치됨. 최신 버전으로 업데이트합니다."
+        log_warn "이미 설치됨."
+        read -p "  최신 버전으로 업데이트하시겠습니까? (y/N): " update_gemini
+        [[ ! "$update_gemini" =~ ^[Yy]$ ]] && { log_info "건너뜁니다."; return; }
+    else
+        read -p "  Gemini CLI를 설치하시겠습니까? (y/N): " install_gemini
+        [[ ! "$install_gemini" =~ ^[Yy]$ ]] && { log_info "건너뜁니다."; return; }
     fi
 
     log_info "Gemini CLI 설치 중 (npm global)..."
@@ -416,7 +434,7 @@ setup_bkit_guide() {
     log_warn "bkit은 Claude Code 실행 중 슬래시 명령으로 설치합니다 (쉘 자동화 불가)."
     echo ""
     echo "  ┌──────────────────────────────────────────────────────────────────┐"
-    echo "  │               bkit 플러그인 설치 가이드 (v2.0.6)                │"
+    echo "  │               bkit 플러그인 설치 가이드 (v2.1.13)               │"
     echo "  ├──────────────────────────────────────────────────────────────────┤"
     echo "  │                                                                  │"
     echo "  │  사전 요구사항                                                   │"
@@ -434,7 +452,7 @@ setup_bkit_guide() {
     echo "  │  3. bkit 설치                                                    │"
     echo "  │     /plugin install bkit                                         │"
     echo "  │                                                                  │"
-    echo "  │  → 설치 완료: 37개 스킬, 32개 에이전트, 88개+ 라이브러리        │"
+    echo "  │  → 설치 완료: 44개 스킬, 34개 에이전트, 163개+ 라이브러리       │"
     echo "  │                                                                  │"
     echo "  │  참고: https://github.com/popup-studio-ai/bkit-claude-code       │"
     echo "  └──────────────────────────────────────────────────────────────────┘"
@@ -443,7 +461,18 @@ setup_bkit_guide() {
     # bkit 자동 업데이트 settings.json
     mkdir -p ~/.claude
     if [ -f ~/.claude/settings.json ]; then
-        log_warn "~/.claude/settings.json 이미 존재. 자동 업데이트 설정을 건너뜁니다."
+        if command -v jq &>/dev/null; then
+            if ! jq -e '.plugins.autoUpdate' ~/.claude/settings.json &>/dev/null; then
+                local tmp
+                tmp=$(jq '.plugins.autoUpdate = true' ~/.claude/settings.json)
+                echo "$tmp" > ~/.claude/settings.json
+                log_success "~/.claude/settings.json: autoUpdate 키 추가 완료"
+            else
+                log_warn "~/.claude/settings.json: autoUpdate 이미 설정됨"
+            fi
+        else
+            log_warn "~/.claude/settings.json 이미 존재. jq 없어 병합 건너뜀."
+        fi
     else
         cat > ~/.claude/settings.json << 'EOF'
 {
@@ -501,7 +530,9 @@ setup_gstack() {
         log_info "Bun 설치 중 (gstack 필수 의존성)..."
         curl -fsSL https://bun.sh/install | bash
         export PATH="$HOME/.bun/bin:$PATH"
-        if ! grep -q '\.bun/bin' ~/.bashrc 2>/dev/null; then
+        # bun 인스톨러가 .bashrc 또는 .bash_profile에 BUN_INSTALL/PATH를 자동 추가함.
+        # 중복 방지: BUN_INSTALL 또는 .bun 패턴 미존재 시에만 추가.
+        if ! grep -qE 'BUN_INSTALL|\.bun' ~/.bashrc 2>/dev/null; then
             echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
         fi
         log_success "Bun 설치 완료: $(bun --version 2>/dev/null)"
@@ -529,8 +560,9 @@ setup_gstack() {
     # gstack setup 실행 (--no-prefix: 짧은 명령 이름 사용)
     if [ -x "$GSTACK_DIR/setup" ]; then
         log_info "gstack setup 실행 중 (빌드 + Chromium 설치 + 스킬 등록)..."
-        (cd "$GSTACK_DIR" && ./setup --no-prefix)
-        if [ $? -eq 0 ]; then
+        # set -e 환경에서 서브셸을 if 조건에 직접 넣어야 $? 체크가 정상 동작함.
+        # (서브셸을 단독 라인에 두면 실패 시 set -e가 즉시 종료하여 아래 if에 도달 불가)
+        if (cd "$GSTACK_DIR" && ./setup --no-prefix); then
             log_success "gstack 설치 완료 (29개 스킬 활성화)"
         else
             log_error "gstack setup 실패."
@@ -657,8 +689,8 @@ _apply_git_common_config() {
     # CRLF 자동 변환 비활성화 (WSL ↔ Windows 줄 끝 문자 충돌 방지)
     git config --global core.autocrlf false
 
-    # 기본 브랜치 이름
-    git config --global init.defaultBranch stg
+    # 기본 브랜치 이름 (main이 GitHub/GitLab 표준)
+    git config --global init.defaultBranch main
 
     # git pull 시 rebase 사용 (불필요한 머지 커밋 방지)
     git config --global pull.rebase true
@@ -667,16 +699,19 @@ _apply_git_common_config() {
     git config --global fetch.prune true
 
     # WSL 자격 증명 저장 (매번 비밀번호 입력 방지)
+    # store: ~/.git-credentials 에 평문 저장 — 개인 개발 머신 전용.
+    # 공용 머신에서는 "cache" (메모리, TTL 15분) 또는 GitHub CLI 사용 권장.
     git config --global credential.helper store
+    log_warn "credential.helper=store: ~/.git-credentials 에 평문 저장됨 (개인 머신 전용)"
 
     log_success "Git 공통 설정 완료"
     echo ""
     echo "  적용된 설정:"
-    echo "   core.autocrlf    = false  (CRLF 변환 안 함)"
-    echo "   init.defaultBranch = stg  (기본 브랜치)"
-    echo "   pull.rebase      = true   (rebase 방식 pull)"
-    echo "   fetch.prune      = true   (삭제된 원격 브랜치 자동 정리)"
-    echo "   credential.helper = store  (자격 증명 저장)"
+    echo "   core.autocrlf      = false  (CRLF 변환 안 함)"
+    echo "   init.defaultBranch = main   (기본 브랜치)"
+    echo "   pull.rebase        = true   (rebase 방식 pull)"
+    echo "   fetch.prune        = true   (삭제된 원격 브랜치 자동 정리)"
+    echo "   credential.helper  = store  (자격 증명 평문 저장 — 개인 머신용)"
 }
 
 #───────────────────────────────────────────────────────────────────────────────
@@ -742,10 +777,12 @@ print_summary() {
     log_info "상세 가이드: guides/wsl-setup.md"
 
     # Docker 그룹 자동 적용 (현재 세션에 즉시 반영)
+    # exec newgrp docker: 현재 프로세스를 docker 그룹 적용 셸로 교체.
+    # sg docker -c "bash" 대신 newgrp 사용 — 인터랙티브 셸 유지 + .bashrc alias 정상 로드.
     if id -nG "$USER" 2>/dev/null | grep -qw docker; then
         if ! groups 2>/dev/null | grep -qw docker; then
-            log_info "Docker 그룹을 현재 세션에 적용합니다..."
-            exec sg docker -c "bash"
+            log_info "Docker 그룹을 현재 세션에 적용합니다 (exec newgrp docker)..."
+            exec newgrp docker
         fi
     fi
 }

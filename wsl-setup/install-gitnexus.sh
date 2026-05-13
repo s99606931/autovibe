@@ -49,9 +49,17 @@ MODE=install
 # 인자 파싱
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --workspace)   WORKSPACE_DIR="$2"; shift 2 ;;
-        --server-port) GITNEXUS_SERVER_PORT="$2"; shift 2 ;;
-        --web-port)    GITNEXUS_WEB_PORT="$2"; shift 2 ;;
+        --workspace)
+            [[ -z "${2:-}" ]] && { log_error "--workspace 값이 없습니다."; exit 1; }
+            WORKSPACE_DIR="$2"; shift 2 ;;
+        --server-port)
+            [[ -z "${2:-}" ]] && { log_error "--server-port 값이 없습니다."; exit 1; }
+            [[ ! "${2}" =~ ^[0-9]+$ ]] && { log_error "--server-port 는 숫자여야 합니다: $2"; exit 1; }
+            GITNEXUS_SERVER_PORT="$2"; shift 2 ;;
+        --web-port)
+            [[ -z "${2:-}" ]] && { log_error "--web-port 값이 없습니다."; exit 1; }
+            [[ ! "${2}" =~ ^[0-9]+$ ]] && { log_error "--web-port 는 숫자여야 합니다: $2"; exit 1; }
+            GITNEXUS_WEB_PORT="$2"; shift 2 ;;
         --no-mcp)      REGISTER_MCP=0; shift ;;
         --uninstall)   MODE=uninstall; shift ;;
         -h|--help)
@@ -79,6 +87,9 @@ if [[ "$MODE" == "uninstall" ]]; then
     echo "╚══════════════════════════════════════════════════════════════════╝"
 
     if [[ -f "$COMPOSE_DST" ]]; then
+        log_warn "docker compose down -v 실행: 컨테이너 + Named Volume(인덱스 데이터) 영구 삭제됩니다."
+        read -p "  계속하시겠습니까? (y/N): " confirm_down
+        [[ ! "$confirm_down" =~ ^[Yy]$ ]] && { log_info "제거 취소됨."; exit 0; }
         log_info "docker compose down 실행 중..."
         (cd "$GITNEXUS_HOME" && docker compose down -v) || log_warn "compose down 실패"
     else
@@ -169,7 +180,7 @@ cp "$COMPOSE_SRC" "$COMPOSE_DST"
 
 cat > "$ENV_FILE" <<EOF
 # GitNexus 환경변수 — install-gitnexus.sh 가 생성
-WORKSPACE_DIR=$WORKSPACE_DIR
+WORKSPACE_DIR="$WORKSPACE_DIR"
 GITNEXUS_SERVER_PORT=$GITNEXUS_SERVER_PORT
 GITNEXUS_WEB_PORT=$GITNEXUS_WEB_PORT
 EOF
@@ -182,42 +193,63 @@ echo "    SERVER_PORT=$GITNEXUS_SERVER_PORT  WEB_PORT=$GITNEXUS_WEB_PORT"
 # 3. docker compose 가동
 #───────────────────────────────────────────────────────────────────────────────
 log_info "이미지 풀 + 컨테이너 기동 중 (수 분 소요)..."
-(
-    cd "$GITNEXUS_HOME"
-    docker compose pull
-    docker compose up -d
-)
+# set -e 환경에서 서브셸 단독 라인은 실패 시 즉시 종료됨 → if 조건으로 감싸서 처리.
+# pull 실패 시 로컬 캐시 이미지로 up 시도 (오프라인 재설치 허용).
+if ! (cd "$GITNEXUS_HOME" && docker compose pull); then
+    log_warn "이미지 pull 실패 — 로컬 캐시 이미지로 기동 시도..."
+fi
+if ! (cd "$GITNEXUS_HOME" && docker compose up -d); then
+    log_error "docker compose up 실패. 로그 확인:"
+    echo "    cd $GITNEXUS_HOME && docker compose logs"
+    exit 1
+fi
 
 # 헬스체크 대기 (최대 60초). 엔드포인트는 GitNexus 1.6.x 기준 /api/health
 log_info "GitNexus 서버 헬스체크 대기 중..."
+_healthcheck_ok=0
 for i in $(seq 1 30); do
     if curl -sf "http://localhost:$GITNEXUS_SERVER_PORT/api/health" &>/dev/null; then
         log_success "서버 응답 확인 (http://localhost:$GITNEXUS_SERVER_PORT/api/health)"
+        _healthcheck_ok=1
         break
-    fi
-    if [[ $i -eq 30 ]]; then
-        log_warn "헬스체크 타임아웃 — docker compose logs 로 확인하세요."
-        echo "    cd $GITNEXUS_HOME && docker compose logs -f"
     fi
     sleep 2
 done
+if [[ $_healthcheck_ok -eq 0 ]]; then
+    log_warn "헬스체크 타임아웃 (60초) — docker compose logs 로 확인하세요."
+    echo "    cd $GITNEXUS_HOME && docker compose logs -f"
+fi
 
 #───────────────────────────────────────────────────────────────────────────────
 # 4. gitnexus CLI 글로벌 설치 (npx 콜드 스타트 제거 → MCP 헬스체크 통과)
 #───────────────────────────────────────────────────────────────────────────────
 GITNEXUS_BIN=""
 if command -v npm &>/dev/null; then
-    if ! command -v gitnexus &>/dev/null; then
+    # npm global prefix 경로를 명시적으로 사용.
+    # command -v gitnexus 는 현재 셸 PATH 기준이라 npm-global/bin 미등록 시 탐지 실패함.
+    _NPM_PREFIX="$(npm config get prefix 2>/dev/null || echo "")"
+    _NPM_GITNEXUS_BIN="${_NPM_PREFIX}/bin/gitnexus"
+
+    if ! command -v gitnexus &>/dev/null && [[ ! -x "$_NPM_GITNEXUS_BIN" ]]; then
         log_info "gitnexus CLI 글로벌 설치 중 (npx 콜드 스타트로 인한 MCP 연결 실패 방지)..."
         if npm install -g gitnexus >/dev/null 2>&1; then
-            log_success "gitnexus 글로벌 설치 완료 ($(gitnexus --version 2>/dev/null))"
+            log_success "gitnexus 글로벌 설치 완료"
         else
             log_warn "글로벌 설치 실패 — npx 폴백 사용 (첫 MCP 호출 시 느릴 수 있음)"
         fi
     else
-        log_warn "gitnexus 이미 설치됨 ($(gitnexus --version 2>/dev/null))"
+        log_warn "gitnexus 이미 설치됨"
     fi
-    GITNEXUS_BIN="$(command -v gitnexus 2>/dev/null || true)"
+
+    # 탐지 순서: ① 현재 PATH ② npm prefix 절대 경로 (PATH 미등록 환경 대응)
+    if command -v gitnexus &>/dev/null; then
+        GITNEXUS_BIN="$(command -v gitnexus)"
+    elif [[ -x "$_NPM_GITNEXUS_BIN" ]]; then
+        GITNEXUS_BIN="$_NPM_GITNEXUS_BIN"
+        log_info "npm-global/bin 미등록 환경 — 절대 경로 사용: $GITNEXUS_BIN"
+    fi
+
+    [[ -n "$GITNEXUS_BIN" ]] && log_success "gitnexus 경로: $GITNEXUS_BIN ($(\"$GITNEXUS_BIN\" --version 2>/dev/null || echo '버전 확인 불가'))"
 else
     log_warn "npm 이 없습니다. setup.sh 의 Node.js 단계 후 다시 실행하세요."
 fi
@@ -264,7 +296,7 @@ else
 fi
 
 #───────────────────────────────────────────────────────────────────────────────
-# 5. 요약
+# 6. 요약
 #───────────────────────────────────────────────────────────────────────────────
 echo ""
 echo "╔══════════════════════════════════════════════════════════════════╗"
