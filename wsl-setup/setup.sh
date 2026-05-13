@@ -21,6 +21,7 @@
 #   8-2. Gemini CLI (선택)
 #   8-3. bkit 플러그인 설치 안내
 #   8-4. gstack 설치 (Garry Tan's Claude Code 스킬 팩)
+#   8-5. GitNexus 설치 (docker compose + Claude Code MCP, 모든 프로젝트 공용)
 #   9. Git 전역 설정 (user.name, email, autocrlf, rebase, prune, credential)
 #
 # 참고:
@@ -168,11 +169,14 @@ setup_essential_packages() {
     sudo apt update -q
 
     log_info "기본 패키지 설치 중..."
+    # bubblewrap: Claude Code v2.1.140+ subprocess sandbox 의존성
+    # (없으면 `claude mcp add` 등 subprocess 실행 시 즉시 실패)
     sudo apt install -y -q \
         build-essential curl wget git \
         ca-certificates gnupg lsb-release \
         software-properties-common \
-        vim nano jq htop unzip wslu
+        vim nano jq htop unzip wslu \
+        bubblewrap
 
     log_info "Python 도구 설치 중..."
     # Ubuntu 24.04: python3.12 기본 탑재, pip는 별도 설치
@@ -558,6 +562,48 @@ setup_gstack() {
 }
 
 #───────────────────────────────────────────────────────────────────────────────
+# 8-5. GitNexus 설치 (docker compose + Claude Code MCP, 모든 프로젝트 공용)
+# 참고: https://github.com/abhigyanpatwari/GitNexus
+#───────────────────────────────────────────────────────────────────────────────
+setup_gitnexus() {
+    print_section "8-5. GitNexus 설치 (코드베이스 지식 그래프 + MCP)"
+
+    echo "  여러 프로젝트에서 공용으로 사용하는 코드 인덱싱/그래프 서비스"
+    echo "  - Server (port 4747) + Web UI (port 4173) — docker compose 가동"
+    echo "  - Claude Code 에 user-scope MCP 등록 (모든 프로젝트 공용)"
+    echo ""
+
+    local SCRIPT_DIR
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local INSTALLER="$SCRIPT_DIR/install-gitnexus.sh"
+
+    if [[ ! -x "$INSTALLER" ]]; then
+        log_error "install-gitnexus.sh 가 없거나 실행 권한이 없습니다: $INSTALLER"
+        return 1
+    fi
+
+    # Docker 그룹이 현재 셸에 적용되어 있는지 확인 (sg docker 활용)
+    if ! docker info &>/dev/null; then
+        log_warn "Docker 그룹이 현재 셸에 적용되지 않았습니다."
+        log_info "sg docker 로 일시 권한 적용 후 install-gitnexus.sh 실행..."
+        sg docker -c "bash '$INSTALLER'" || {
+            log_warn "자동 실행 실패. 설치 완료 후 수동 실행이 필요합니다:"
+            echo "   newgrp docker"
+            echo "   bash '$INSTALLER'"
+            return 1
+        }
+    else
+        bash "$INSTALLER" || {
+            log_warn "GitNexus 설치 중 일부 단계 실패. 수동 재실행:"
+            echo "   bash '$INSTALLER'"
+            return 1
+        }
+    fi
+
+    log_success "GitNexus 설치 완료"
+}
+
+#───────────────────────────────────────────────────────────────────────────────
 # 9. Git 전역 설정
 #───────────────────────────────────────────────────────────────────────────────
 setup_git_config() {
@@ -654,6 +700,15 @@ print_summary() {
     fi
 
     command -v gemini  &>/dev/null && echo "  Gemini CLI:  설치됨"
+
+    if [[ -f "$HOME/.gitnexus/docker-compose.yml" ]]; then
+        if docker ps --format '{{.Names}}' 2>/dev/null | grep -q gitnexus-server; then
+            echo "  GitNexus:    가동 중 (server:4747, web:4173)"
+        else
+            echo "  GitNexus:    설치됨 (중지 상태 — cd ~/.gitnexus && docker compose up -d)"
+        fi
+    fi
+
     echo "  ─────────────────────────────────────────────────────"
     echo ""
 
@@ -674,6 +729,13 @@ print_summary() {
     log_info "[다음 단계] bkit 플러그인 설치 (Claude Code 실행 후):"
     echo "   /plugin marketplace add popup-studio-ai/bkit-claude-code"
     echo "   /plugin install bkit"
+    echo ""
+
+    log_info "[GitNexus] 모든 프로젝트 공용 코드 그래프 + MCP:"
+    echo "   Web UI:        http://localhost:4173"
+    echo "   상태 확인:      cd ~/.gitnexus && docker compose ps"
+    echo "   MCP 확인:       claude mcp list   # gitnexus 항목 확인"
+    echo "   재설치/수정:    bash wsl-setup/install-gitnexus.sh [--uninstall]"
     echo ""
 
 
@@ -716,6 +778,7 @@ main() {
     setup_gemini_cli
     setup_bkit_guide
     setup_gstack
+    setup_gitnexus
     setup_git_config
     print_summary
 }

@@ -1,0 +1,50 @@
+# GitNexus - 코드베이스 지식 그래프 (공용 서비스)
+#
+# 여러 프로젝트에서 공용으로 사용:
+#   - WORKSPACE_DIR (기본 /data/projects)에 인덱싱할 프로젝트 디렉토리를 두면
+#     컨테이너 내부 /workspace 로 read-only 마운트되어 모든 프로젝트를 한 번에 인덱싱.
+#   - gitnexus-data 명명 볼륨에 인덱스가 영구 저장되어 재시작 후에도 보존.
+#
+# 포트:
+#   - 4747: HTTP/MCP API (Claude Code MCP 서버가 npx 로 띄울 때 동일 인덱스 공유)
+#   - 4173: Web UI (브라우저로 그래프 시각 탐색)
+#
+# 시작/중지:
+#   cd ~/.gitnexus && docker compose up -d
+#   cd ~/.gitnexus && docker compose down
+#
+# 참고: https://github.com/abhigyanpatwari/GitNexus
+
+services:
+  gitnexus-server:
+    image: ghcr.io/abhigyanpatwari/gitnexus:latest
+    container_name: gitnexus-server
+    restart: unless-stopped
+    ports:
+      - "${GITNEXUS_SERVER_PORT:-4747}:4747"
+    volumes:
+      - gitnexus-data:/data/gitnexus
+      - ${WORKSPACE_DIR:-/data/projects}:/workspace:ro
+    environment:
+      GITNEXUS_SKIP_OPTIONAL_GRAMMARS: "1"
+      GITNEXUS_WORKER_SUB_BATCH_TIMEOUT_MS: "60000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4747/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  gitnexus-web:
+    image: ghcr.io/abhigyanpatwari/gitnexus-web:latest
+    container_name: gitnexus-web
+    restart: unless-stopped
+    ports:
+      - "${GITNEXUS_WEB_PORT:-4173}:4173"
+    depends_on:
+      gitnexus-server:
+        condition: service_started
+
+volumes:
+  gitnexus-data:
+    name: gitnexus-data
